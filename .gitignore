@@ -34,3 +34,21 @@ vignettes/*.pdf
 
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
+100_template/.DS_Store
+100_template/1/.DS_Store
+*.opf
+100_template/1/imu/.DS_Store
+100_template/1/imu/left_ankle/accel.csv
+100_template/1/imu/left_ankle/gyro.csv
+100_template/1/log_100_1.csv
+100_template/1/videos_converted/imul_100_1_part1.mp4
+100_template/1/videos_converted/imul_100_1_part2.mp4
+100_template/2/.DS_Store
+*.DS_Store
+*.insv
+*.mp4
+*.mov
+*.pdf
+*.asv
+
+[1]*/
