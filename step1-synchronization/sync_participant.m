@@ -8,6 +8,7 @@
 % end
 tic
 cd('X:\imu_long')
+addpath step1-synchronization
 clear all
 
 id = 102;
@@ -63,6 +64,8 @@ gyr_lt = resample(gyr_lt,new_time);
 %%
 
 %Hard coded values from Biostamp and legging log
+start_time = datetime(1626117158.015,'ConvertFrom','epochtime');
+start_time.TimeZone = '-14:00';
 first_jump = (1626117158015000-offset)/1000000;
 nap_on = (1626123609890000-offset)/1000000;
 nap_off = (1626128440659000-offset)/1000000;
@@ -211,6 +214,7 @@ parfor i = 1:length(indices)
     end
     
     ds_n.time = mean(ds_t.time);
+    ds_n.clock_time = start_time + seconds(mean(ds_t.time) - first_jump);
     ds_n.class = mode(ds_t.class);
     ds_n.class_prop = sum(ds_t.class == ds_n.class)/height(ds_t);
     
@@ -350,6 +354,7 @@ parfor i = 1:length(indices)
     
     %from here only using varfun, no more manual stats
     ds_t.time = [];
+    %ds_t.clock_time = [];
     ds_t.class = [];
     ds_n = horzcat(ds_n, varfun(@mean, ds_t));
     ds_n = horzcat(ds_n, varfun(@median, ds_t));
