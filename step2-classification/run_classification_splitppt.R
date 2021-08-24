@@ -3,9 +3,10 @@ library(tidyverse)
 library(caret)
 library(cvms)
 library(here)
-source(here("2-classification","collapse_classes.R"))
+source(here("step2-classification","collapse_classes.R"))
 library(glue)
 library(xtable)
+library(lubridate)
 
 cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73","#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 theme_update(text = element_text(size = 16),
@@ -36,6 +37,7 @@ filename <- paste0(outcome, "_trees",ntree,"_samples",samples,"_",fft_string,"_s
 fname <- here("102","1","imu","classification100.txt")
 ds_full <- read_csv(fname)
 ds_full$time <- as.numeric(row.names(ds))
+ds_full$clock_time_parsed <- parse_date_time(ds_full$clock_time, "%d-%B-%y %H:%M:%S") - hours(7)
 
 if (include_fft == F) {
   ds_full <- select(ds_full, !contains("fft"))
@@ -48,8 +50,8 @@ ds <- ds_full %>% filter(video_time == 0, class_prop > .5) %>% select(-video_tim
 
 #SPLIT INTO TRAINING TESTING, THEN RECLASSIFY AND DROP CLASSES
 ds <- ds %>% arrange(classe, time)
-training <- ds %>% group_by(classe) %>% slice_head(prop = .65) %>% ungroup %>% select(-(1:3))
-testing <- ds %>% group_by(classe) %>% slice_tail(prop = .35) %>% ungroup %>% select(-(1:3))
+training <- ds %>% group_by(classe) %>% slice_head(prop = .65) %>% ungroup %>% select(-(1:4))
+testing <- ds %>% group_by(classe) %>% slice_tail(prop = .35) %>% ungroup %>% select(-(1:4))
 
 training <- collapse_classes(outcome, training)
 training$classe <- fct_drop(training$classe)
@@ -72,19 +74,19 @@ plot_confusion_matrix(res$`Confusion Matrix`[[1]])
 #save(list = c("res","rfmodel","filename","testing","training"),file=here(paste0(filename,".RData")))
 
 ##ALL VIDEO TRAINING MODEL
-training_all <- ds %>% select(-(1:3))
+training_all <- ds %>% select(-(1:4))
 training_all <- collapse_classes(outcome, training_all)
 training_all$classe <- fct_drop(training_all$classe)
 
 rfmodel_all <- randomForest(classe ~ ., data = training_all, localImp = TRUE, proximity = FALSE,na.action=na.roughfix, ntree = ntree)
 
 full_day <- ds_full %>% filter(video_time == 1 | video_time == 0) %>% select(-video_time)
-full_day_times <- select(full_day, time, nap_time) 
+full_day_times <- select(full_day, time, clock_time, nap_time) 
 full_day <- full_day %>% select(-(1:3)) %>% select(-nap_time)
 
 #Predict from all
 predictions_full <- predict(rfmodel_all, full_day, type = "class")
-p <- bind_cols(full_day_times, predictions_full) %>% set_names(c("time","nap","posture"))
+p <- bind_cols(full_day_times, predictions_full) %>% set_names(c("time","clock_time","nap","posture"))
 
 #Predict from training data
 predictions_part <- predict(rfmodel, full_day, type = "class")
@@ -97,6 +99,11 @@ ggplot(p) +
   #geom_path(aes(x = time, y = .995 ,color = posture_part, group = 1L), size = 6) +
   ylim(.95,1.05) + theme(legend.position = "top") + 
   geom_vline(xintercept = c(nap_on_off$nap_on, nap_on_off$nap_off)) 
+
+ggplot(p) + 
+  geom_path(aes(x = as.POSIXct(clock_time), y = 1,color = posture, group = 1L), size = 20) + 
+  scale_x_datetime(labels ="%H:%M") + 
+  ylim(.95,1.05) + theme(legend.position = "top") 
 
 p_awake <- p %>% filter(nap == 1)
 left_join(fct_count(p_awake$posture, prop = T), fct_count(p_awake$posture_part, prop = T), by = "f")
