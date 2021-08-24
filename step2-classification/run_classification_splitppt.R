@@ -108,6 +108,6 @@ ggplot(p) +
 p_awake <- p %>% filter(nap == 1)
 left_join(fct_count(p_awake$posture, prop = T), fct_count(p_awake$posture_part, prop = T), by = "f")
 
-save(file = "model_data/model_data.RData", list = c("p", "rfmodel","rfmodel_all","nap_on_off"))
+save(file = here("102","1","synced_data","synced_data.RData"), list = c("p", "rfmodel","rfmodel_all","nap_on_off"))
 
 
