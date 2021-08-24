@@ -30,7 +30,7 @@ ggplot(p) +
   scale_x_datetime(date_break = "1 hour", date_labels = "%H:%M") + xlab("") + 
   ylim(.95,1.1) + theme(legend.position = "top") 
 
-#Add categories to lena
+#Add posture summary categories to lena windows
 lena <- lena %>% mutate(
   sit_time = NA,
   held_time = NA,
