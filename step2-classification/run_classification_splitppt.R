@@ -37,7 +37,7 @@ filename <- paste0(outcome, "_trees",ntree,"_samples",samples,"_",fft_string,"_s
 fname <- here("102","1","imu","classification100.txt")
 ds_full <- read_csv(fname)
 ds_full$time <- as.numeric(row.names(ds))
-ds_full$clock_time_parsed <- parse_date_time(ds_full$clock_time, "%d-%B-%y %H:%M:%S") - hours(7)
+ds_full$clock_time <- parse_date_time(ds_full$clock_time, "%d-%b-%y %H:%M:%S") - hours(7)
 
 if (include_fft == F) {
   ds_full <- select(ds_full, !contains("fft"))
@@ -101,8 +101,8 @@ ggplot(p) +
   geom_vline(xintercept = c(nap_on_off$nap_on, nap_on_off$nap_off)) 
 
 ggplot(p) + 
-  geom_path(aes(x = as.POSIXct(clock_time), y = 1,color = posture, group = 1L), size = 20) + 
-  scale_x_datetime(labels ="%H:%M") + 
+  geom_path(aes(x = clock_time, y = 1,color = posture, group = 1L), size = 20) + 
+  scale_x_datetime(date_break = "1 hour", date_labels = "%H:%M") + xlab("") + 
   ylim(.95,1.05) + theme(legend.position = "top") 
 
 p_awake <- p %>% filter(nap == 1)
