@@ -24,9 +24,10 @@ lena <- lena %>% mutate(scaled_ctc = convTurnCount/32/10 + 1,
 
 ggplot(p) + 
   geom_path(aes(x = clock_time, y =.975,color = posture, group = 1L), size = 20) + 
-  geom_point(data = lena, aes(x = clock_time, y = scaled_ctc)) + 
-  geom_point(data = lena, aes(x = clock_time, y = scaled_tvn), color = "red") +
-  geom_point(data = lena, aes(x = clock_time, y = scaled_cry), color = "orange") +
+  geom_point(data = lena, aes(x = clock_time, y = scaled_ctc)) +
+  geom_line(data = lena, aes(x = clock_time, y = scaled_ctc)) +
+  #geom_point(data = lena, aes(x = clock_time, y = scaled_tvn), color = "red") +
+  #geom_point(data = lena, aes(x = clock_time, y = scaled_cry), color = "orange") +
   scale_x_datetime(date_break = "1 hour", date_labels = "%H:%M") + xlab("") + 
   ylim(.95,1.1) + theme(legend.position = "top") 
 
