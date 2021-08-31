@@ -23,20 +23,20 @@ rankle_gyr <- read_csv(here(id,session, "imu", "right_ankle","gyro.csv"), skip =
 lhip_gyr <- read_csv(here(id,session, "imu", "left_hip","gyro.csv"), skip = 1, col_names = c("time", "lhgyr_x", "lhgyr_y", "lhgyr_z")) 
 rhip_gyr <- read_csv(here(id,session, "imu", "right_hip","gyro.csv"), skip = 1, col_names = c("time", "rhgyr_x", "rhgyr_y", "rhgyr_z")) 
 
-fix_biostamp_time <- function(x) as_datetime(round(microseconds(x),2), tz = "America/Los_Angeles")
+fix_biostamp_time <- function(x) as_datetime((round(x/1000000, 2)), tz = "America/Los_Angeles")
 
 ds1 <- lankle_acc %>% mutate(time = fix_biostamp_time(time))
 ds2 <- rankle_acc %>% mutate(time = fix_biostamp_time(time))
-ds <- full_join(ds1, ds2)
+ds <- full_join(ds1, ds2) %>% arrange(time)
 
-ds <- full_join(lankle_acc, rankle_acc, by = c("time" = "time"))
-ds <- full_join(ds, lhip_acc, by = c("time" = "time"))
-ds <- full_join(ds, rhip_acc, by = c("time" = "time"))
-ds <- full_join(ds, lankle_gyr, by = c("time" = "time"))
-ds <- full_join(ds, rankle_gyr, by = c("time" = "time"))
-ds <- full_join(ds, lankle_gyr, by = c("time" = "time"))
-ds <- full_join(ds, rankle_gyr, by = c("time" = "time"))
-
+ds <- full_join(lankle_acc %>% mutate(time = fix_biostamp_time(time)), rankle_acc %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
+ds <- full_join(ds, lhip_acc  %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
+ds <- full_join(ds, rhip_acc %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
+ds <- full_join(ds, lankle_gyr %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
+ds <- full_join(ds, rankle_gyr %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
+ds <- full_join(ds, lankle_gyr %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
+ds <- full_join(ds, rankle_gyr %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
+ds <- ds %>% arrange(time)
 
 
 start_time <- "2021-07-12 12:20:00"
