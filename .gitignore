@@ -52,3 +52,4 @@ rsconnect/
 *.asv
 
 [1]*/
+imu_timeseries_exploration/
