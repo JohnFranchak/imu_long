@@ -107,10 +107,11 @@ for (i in 1:nrow(activity)) {
   ds[between_time(ds$time, activity$onset[i], activity$offset[i]),]$code <- activity$code[i]
 } 
 
-#Make ds subset that has entire coded period, not rest of day
+#Identify start and end times of coded period
+
 start_time_coded <- activity %>% slice_head %>% pull(onset)
 end_time_coded <- activity %>% slice_tail %>% pull(offset)
-ds_coded <-ds %>% filter_by_time(time, start_time_coded, end_time_coded)
+# ds_coded <-ds %>% filter_by_time(time, start_time_coded, end_time_coded)
 
 # ds_coded %>% plot_time_series(time, laacc_x, .color_var = code, .smooth = F)
 # ds_coded %>% plot_time_series(time, hacc_z, .color_var = code, .smooth = F)
@@ -118,7 +119,24 @@ ds_coded <-ds %>% filter_by_time(time, start_time_coded, end_time_coded)
 
 # MOTION FEATURES ------
 # sliding 4 second windows every 1 second
-slide <- slide_period_dfr(ds_coded, .i = ds_coded$time, .period = "second", .every = 2, .after = 1, ~ motion_features(.x, who))
+
+slide <- slide_period_dfr(ds, 
+                          .i = ds$time, 
+                          .period = "second", 
+                          .every = 2, 
+                          .after = 1, 
+                          .origin = start_time_coded, 
+                          ~ motion_features(.x, who))
+
+#Note video and nap periods
+slide$video_period <- 0
+slide[between_time(slide$time, start_time_coded, end_time_coded),]$video_period <- 1
+
+slide$nap_period <- 0
+naps <- anno %>% filter(value == "nap")
+for (i in 1:nrow(nap)) {
+  slide[between_time(slide$time, nap$start_timestamp_ms[i], nap$stop_timestamp_ms[i]),]$nap_period <- 1
+} 
 
 save(slide, file = here(id,session, "synced_data", glue("mot_features_{who}.RData")))
 
