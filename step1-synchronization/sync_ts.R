@@ -11,7 +11,8 @@ source(here("step1-synchronization","motion_features.R"))
 
 id <- 102
 session <- 1
-
+start_time <- "2021-07-12 12:00:00"
+end_time <- "2021-07-12 20:00:00"
 
 #READ IN DATA
 lankle_acc <- read_csv(here(id,session, "imu", "left_ankle","accel.csv"), skip = 1,  col_names = c("time", "laacc_x", "laacc_y", "laacc_z")) 
@@ -23,26 +24,31 @@ rankle_gyr <- read_csv(here(id,session, "imu", "right_ankle","gyro.csv"), skip =
 lhip_gyr <- read_csv(here(id,session, "imu", "left_hip","gyro.csv"), skip = 1, col_names = c("time", "lhgyr_x", "lhgyr_y", "lhgyr_z")) 
 rhip_gyr <- read_csv(here(id,session, "imu", "right_hip","gyro.csv"), skip = 1, col_names = c("time", "rhgyr_x", "rhgyr_y", "rhgyr_z")) 
 
-fix_biostamp_time <- function(x) as_datetime((round(x/1000000, 2)), tz = "America/Los_Angeles")
+sensor_data <- c("lankle_acc", "rankle_acc", "lhip_acc", "rhip_acc", "lankle_gyr", "rankle_gyr", "lhip_gyr","rhip_gyr")
 
-ds1 <- lankle_acc %>% mutate(time = fix_biostamp_time(time))
-ds2 <- rankle_acc %>% mutate(time = fix_biostamp_time(time))
-ds <- full_join(ds1, ds2) %>% arrange(time)
+filter_and_fix_time <- function(data_string, start_time, end_time) {
+  temp_ds <- get(data_string)
+  fix_biostamp_time <- function(x) as_datetime((round(x/1000000, 2)), tz = "America/Los_Angeles")
+  
+  temp_ds <- temp_ds %>% 
+      mutate(time = fix_biostamp_time(time)) %>% 
+      filter_by_time(time, start_time, end_time) 
+  assign(paste0(data_string,"_filt"), temp_ds, envir = .GlobalEnv)
+}
 
-ds <- full_join(lankle_acc %>% mutate(time = fix_biostamp_time(time)), rankle_acc %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
-ds <- full_join(ds, lhip_acc  %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
-ds <- full_join(ds, rhip_acc %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
-ds <- full_join(ds, lankle_gyr %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
-ds <- full_join(ds, rankle_gyr %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
-ds <- full_join(ds, lankle_gyr %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
-ds <- full_join(ds, rankle_gyr %>% mutate(time = fix_biostamp_time(time)), by = c("time" = "time"))
+sdfilt <- map_chr(sensor_data, ~paste0(.x,"_filt"))
+walk(sensor_data, ~ filter_and_fix_time(.x, start_time, end_time))
+
+ds <-  full_join(get(sdfilt[1]), get(sdfilt[2])) 
+for (i in 3:length(sdfilt)){
+  ds <- full_join(ds, get(sdfilt[i]))
+}
 ds <- ds %>% arrange(time)
 
+ds %>% slice_head(n = 200)
 
-start_time <- "2021-07-12 12:20:00"
-end_time <- "2021-07-12 12:40:00"
 
-wrist_per <- wrist %>% filter_by_time(time, start_time, end_time)
+wrist_per <- wrist %>% 
 hip_per <- hip %>% filter_by_time(time, start_time, end_time)
 
 ds <- full_join(wrist_per, hip_per, by = c("time" = "time"))
