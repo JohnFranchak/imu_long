@@ -85,11 +85,11 @@ anno <- read_csv(here(id,session, "coding", "biostamp_annotations.csv")) %>%
   rename_with(~ janitor::make_clean_names(.x)) %>% 
   mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles")))
 
-sync_point <- anno %>% filter(value == "parent sync") %>% pull(start_timestamp_ms)
+sync_point <- anno %>% filter(value == "sync") %>% pull(start_timestamp_ms)
 
 activity  <-  activity %>% mutate(across(onset:offset, ~ sync_point + seconds(.x)))
 
-#Apply activity codes to ds
+# Match activity codes to imu data based on time
 ds$code <- NA
 for (i in 1:nrow(activity)) {
   ds[between_time(ds$time, activity$onset[i], activity$offset[i]),]$code <- activity$code[i]
@@ -103,18 +103,16 @@ ds_coded <-ds %>% filter_by_time(time, start_time_coded, end_time_coded)
 ds_coded %>% plot_time_series(time, laacc_x, .color_var = code, .smooth = F)
 
 
-#BY MINUTES FOR DEBUGGING
-# slide <- slide_period_dfr(ds, .i = ds$time, .period = "minute", .every = 2, .after = 1, ~ motion_features(.x, "parent"))
+# MOTION FEATURES ------
+# sliding 4 second windows every 1 second
+slide <- slide_period_dfr(ds_coded, .i = ds_coded$time, .period = "second", .every = 2, .after = 1, ~ motion_features(.x, who))
 
-#ACTUAL ONE (sliding 4 second windows every 1 seconds)
-slide <- slide_period_dfr(ds_coded, .i = ds_coded$time, .period = "second", .every = 2, .after = 1, ~ motion_features(.x, "infant"))
-
-save(slide, file = here(id,session, "coding", "slide_inf.RData"))
+save(slide, file = here(id,session, "synced_data", glue("mot_features_{who}.RData"))
 
 #SHOULD ALSO INCLUDE A FEATURE SET FOR THE ENTIRE DAY...
 
 
-#-----------
+# DEBUGGING ----------- 
 #IF MORE CONTROL OVER TIME IS NEEDED, I CAN ADJUST SECONDS BY A MULTIPLIER
 
 #DIVIDE TIME BY 4 TO MAKE EACH SECOND A 4 SECOND WINDOW
@@ -124,4 +122,3 @@ save(slide, file = here(id,session, "coding", "slide_inf.RData"))
 
 #MULTIPLY TIME BY 4 TO RETURN TO ORIGINAL TIMESCALE
 #slide$time <- as.POSIXct(as_date(seconds(slide$time)*4))
-#------------
