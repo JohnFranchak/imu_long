@@ -93,11 +93,12 @@ valid_codes <- c("d","u","s","sr","ss","sc","w","c","p","hs","hw","l")
 activity_special <- activity %>% filter(!code %in% valid_codes)
 activity <- activity %>% filter(code %in%valid_codes)
 
+#NEED A BETTER WAY OF GETTING WRIST SYNC POINTS FROM THE DATA
 if (who == "parent") {
   wrist_video_time <- activity_special %>% filter(code == "wrist") %>% pull(onset) 
   wrist_sync <- ds %>% filter(wacc_x > 3) %>% slice_head() %>%  pull(time) #NEED TO FIX THIS FOR FUTURE PPTS
   time_diff <- wrist_sync - wrist_video_time
-  ds$time <- ds$time + time_diff
+  ds$time <- ds$time - time_diff
 }
 
 # Match activity codes to imu data based on time
