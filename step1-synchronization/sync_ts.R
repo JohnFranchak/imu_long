@@ -45,55 +45,40 @@ for (i in 3:length(sdfilt)){
 }
 ds <- ds %>% arrange(time)
 
-ds %>% slice_head(n = 200)
+ds  <- ds %>% mutate(across(-time, ~ts_impute_vec(.x)))
 
-
-wrist_per <- wrist %>% 
-hip_per <- hip %>% filter_by_time(time, start_time, end_time)
-
-ds <- full_join(wrist_per, hip_per, by = c("time" = "time"))
-
-ds %>% plot_time_series(time, wacc_x, .smooth = F, .interactive = F)
-ds %>% plot_time_series(time, hacc_x, .smooth = F, .interactive = F)
-
-ds_long <- ds %>% select(time, wacc_x, hacc_x) %>% 
-  pivot_longer(wacc_x:hacc_x, names_to = "sensors", values_to = "acc")
-
-ds_long %>% plot_time_series(time, acc, .facet_vars = "sensors",.smooth = F, .interactive = T, .facet_scales = "fixed")
+#ds %>% plot_time_series(time, laacc_x, .smooth = F, .interactive = F)
 
 
 #IMPORT ACTIVITY AND SCALE TIMES
-activity <- read_csv(here("data","activity_parent.csv"), col_names = c("onset", "offset", "code"))
+activity <- read_csv(here(id,session, "coding", "activity.csv"), col_names = c("onset", "offset", "code"))
 activity <- activity %>% mutate(across(onset:offset, ~ .x/1000))
-activity_special <- activity %>% filter(!code %in% c("d","u","s"))
-activity <- activity %>% filter(code %in% c("d","u","s"))
+valid_codes <- c("d","u","s","sr","ss","sc","w","c","p","hs","hw","l")
+activity_special <- activity %>% filter(!code %in% valid_codes)
+activity <- activity %>% filter(code %in%valid_codes)
 
-#Align to wrist codes
-wrist_video_sync <- activity_special %>% filter(code == "wrist") %>% pull(onset)
-activity  <-  activity %>% mutate(across(onset:offset, ~ .x - wrist_video_sync))
+#Offset based on jump time
 
-wrist_sync <- ds %>% filter(wacc_x > 3) %>% pull(time)
-activity  <-  activity %>% mutate(across(onset:offset, ~ wrist_sync + seconds(.x)))
+anno <- read_csv(here(id,session, "coding", "biostamp_annotations.csv")) %>% 
+  rename_with(~ janitor::make_clean_names(.x)) %>% 
+  mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles")))
 
-#Make longer ds subset that has entire coded period
-start_time <- activity %>% slice_head %>% pull(onset)
-end_time <- activity %>% slice_tail %>% pull(offset)
+sync_point <- anno %>% filter(value == "parent sync") %>% pull(start_timestamp_ms)
 
-wrist_per <- wrist %>% filter_by_time(time, start_time, end_time)
-hip_per <- hip %>% filter_by_time(time, start_time, end_time)
+activity  <-  activity %>% mutate(across(onset:offset, ~ sync_point + seconds(.x)))
 
-#SMOOTH MOTION DATA?
-
-ds <- full_join(wrist_per, hip_per, by = c("time" = "time"))
-ds <- ds %>% arrange(time)
-
+#Apply activity codes to ds
 ds$code <- NA
 for (i in 1:nrow(activity)) {
   ds[between_time(ds$time, activity$onset[i], activity$offset[i]),]$code <- activity$code[i]
 } 
 
+#Make ds subset that has entire coded period, not rest of day
+start_time_coded <- activity %>% slice_head %>% pull(onset)
+end_time_coded <- activity %>% slice_tail %>% pull(offset)
+ds_coded <-ds %>% filter_by_time(time, start_time_coded, end_time_coded)
 
-ds %>% plot_time_series(time, hacc_x, .color_var = code, .smooth = F)
+ds_coded %>% plot_time_series(time, laacc_x, .color_var = code, .smooth = F)
 
 
 #BY MINUTES FOR DEBUGGING
@@ -102,7 +87,7 @@ ds %>% plot_time_series(time, hacc_x, .color_var = code, .smooth = F)
 #ACTUAL ONE (sliding 4 second windows every 2 seconds)
 slide <- slide_period_dfr(ds, .i = ds$time, .period = "second", .every = 2, .after = 1, ~ motion_features(.x, "parent"))
 
-save(slide, file = "slide.RData")
+save(slide, file = "slide_inf.RData")
 
 
 
