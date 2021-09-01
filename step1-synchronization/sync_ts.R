@@ -84,10 +84,10 @@ ds_coded %>% plot_time_series(time, laacc_x, .color_var = code, .smooth = F)
 #BY MINUTES FOR DEBUGGING
 # slide <- slide_period_dfr(ds, .i = ds$time, .period = "minute", .every = 2, .after = 1, ~ motion_features(.x, "parent"))
 
-#ACTUAL ONE (sliding 4 second windows every 2 seconds)
-slide <- slide_period_dfr(ds, .i = ds$time, .period = "second", .every = 2, .after = 1, ~ motion_features(.x, "parent"))
+#ACTUAL ONE (sliding 4 second windows every 1 seconds)
+slide <- slide_period_dfr(ds_coded, .i = ds_coded$time, .period = "second", .every = 2, .after = 1, ~ motion_features(.x, "infant"))
 
-save(slide, file = "slide_inf.RData")
+save(slide, file = here(id,session, "coding", "slide_inf.RData"))
 
 
 

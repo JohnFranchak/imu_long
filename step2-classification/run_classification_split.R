@@ -1,0 +1,44 @@
+library(timetk)
+library(lubridate)
+library(here)
+library(janitor)
+library(slider)
+library(psych)
+library(corrr)
+library(randomForest)
+library(cvms)
+library(caret)
+library(tidyverse)
+
+#LOAD DATA
+id <- 102
+session <- 1
+who <- "infant"
+
+
+slide_filt <- slide 
+#CODE FACTORS
+if (who == "parent") {
+  slide_filt$code = ifelse(slide_filt$code == "s", "d", slide_filt$code)
+  slide_filt$code <- factor(slide_filt$code, levels = c("u", "d"), labels = c("Upright", "Down"))
+  # slide_filt$code <- factor(slide_filt$code, levels = c("u", "d", "s"), labels = c("Upright", "Down", "Sitting")) 
+} else if (who == "infant") {
+  slide_filt$code = ifelse(slide_filt$code == "sr", "ss", slide_filt$code)
+  slide_filt$code <- factor(slide_filt$code, levels = c("hs", "l","p","ss","u"), labels = c("Held", "Supine","Prone","Sitting","Upright"))
+}
+slide_filt <- slide_filt %>% filter(code_prop > .75) %>% drop_na(code) %>% select(-code_prop)
+
+#SPLIT INTO TRAINING TESTING, THEN RECLASSIFY AND DROP CLASSES
+slide_filt <- slide_filt %>% arrange(code, time)
+
+training <- slide_filt %>% group_by(code) %>% slice_head(prop = .6) %>% ungroup %>% select(-time) 
+testing <- slide_filt %>% group_by(code) %>% slice_tail(prop = .4) %>% ungroup %>% select(-time) 
+
+rfmodel <- randomForest(code ~ ., data = training, localImp = TRUE, proximity = FALSE, ntree = 150)
+
+predictions <- predict(rfmodel, testing, type = "class")
+
+u <- union(predictions, testing$code)
+res <- confusion_matrix(factor(testing$code, u),factor(predictions, u))
+res$`Balanced Accuracy`
+res$`Table`
