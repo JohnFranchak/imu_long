@@ -16,6 +16,7 @@ who <- "infant"
 start_time <- "2021-07-12 12:00:00"
 end_time <- "2021-07-12 20:00:00"
 
+# READ DATA -----
 read_infant_imu <- function(name) {
   name_long <- name
   name <- str_split_fixed(name, "_", n = 3) %>% as.list(.) %>%  set_names(c("side","part","signal"))
@@ -27,41 +28,51 @@ read_infant_imu <- function(name) {
   assign(name_long, read_csv(file, skip = 1, col_names = col_names), envir = .GlobalEnv)
 }
 
+read_parent_imu <- function(name) {
+  file <- here(id,session, "imu", "caregiver",glue("{name}.csv"))
+  col_names <- c("time", glue("{str_sub(name,1,1)}acc_x"), glue("{str_sub(name,1,1)}acc_y"), glue("{str_sub(name,1,1)}acc_z"),
+                 glue("{str_sub(name,1,1)}gyr_x"), glue("{str_sub(name,1,1)}gyr_y"), glue("{str_sub(name,1,1)}gyr_z"))
+  assign(name, read_csv(file, skip = 1, col_names = col_names), envir = .GlobalEnv)
+}
+
 if (who == "infant") {
   sensor_data <- c("left_ankle_accel", "right_ankle_accel", "left_hip_accel", "right_hip_accel", "left_ankle_gyro", "right_ankle_gyro", "left_hip_gyro","right_hip_gyro")
   walk(sensor_data, ~read_infant_imu(.x))
 } else if (who == "parent") {
-    
-  }
+  sensor_data <- c("wrist", "hip")
+  walk(sensor_data, ~read_parent_imu(.x))
+}
 
-
-
-
-filter_and_fix_time <- function(data_string, start_time, end_time) {
+# FIX TIMES ----
+filter_and_fix_time <- function(data_string, start_time, end_time, who) {
   temp_ds <- get(data_string)
   fix_biostamp_time <- function(x) as_datetime((round(x/1000000, 2)), tz = "America/Los_Angeles")
   
-  temp_ds <- temp_ds %>% 
-      mutate(time = fix_biostamp_time(time)) %>% 
-      filter_by_time(time, start_time, end_time) 
+  temp_ds <- temp_ds %>% mutate(time = fix_biostamp_time(time))
+  if (who == "parent") {
+    temp_ds <- temp_ds %>% mutate(time = time + hours(1))
+  }  
+  temp_ds <- temp_ds %>% filter_by_time(time, start_time, end_time) 
   assign(paste0(data_string,"_filt"), temp_ds, envir = .GlobalEnv)
 }
 
+walk(sensor_data, ~ filter_and_fix_time(.x, start_time, end_time, who))
 sdfilt <- map_chr(sensor_data, ~paste0(.x,"_filt"))
-walk(sensor_data, ~ filter_and_fix_time(.x, start_time, end_time))
 
+# JOIN SENSORS INTO SINGLE FRAME ----
 ds <-  full_join(get(sdfilt[1]), get(sdfilt[2])) 
-for (i in 3:length(sdfilt)){
-  ds <- full_join(ds, get(sdfilt[i]))
+if (who == "infant") {
+  for (i in 3:length(sdfilt)){
+    ds <- full_join(ds, get(sdfilt[i]))
+  }
 }
 ds <- ds %>% arrange(time)
-
 ds  <- ds %>% mutate(across(-time, ~ts_impute_vec(.x)))
 
 #ds %>% plot_time_series(time, laacc_x, .smooth = F, .interactive = F)
 
 
-#IMPORT ACTIVITY AND SCALE TIMES
+# IMPORT CODED ACTIVITY -----
 activity <- read_csv(here(id,session, "coding", "activity.csv"), col_names = c("onset", "offset", "code"))
 activity <- activity %>% mutate(across(onset:offset, ~ .x/1000))
 valid_codes <- c("d","u","s","sr","ss","sc","w","c","p","hs","hw","l")
