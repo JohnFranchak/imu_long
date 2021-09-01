@@ -7,24 +7,35 @@ library(randomForest)
 library(cvms)
 library(caret)
 library(tidyverse)
+library(glue)
 source(here("step1-synchronization","motion_features.R"))
 
 id <- 102
 session <- 1
+who <- "infant"
 start_time <- "2021-07-12 12:00:00"
 end_time <- "2021-07-12 20:00:00"
 
-#READ IN DATA
-lankle_acc <- read_csv(here(id,session, "imu", "left_ankle","accel.csv"), skip = 1,  col_names = c("time", "laacc_x", "laacc_y", "laacc_z")) 
-rankle_acc <- read_csv(here(id,session, "imu", "right_ankle","accel.csv"), skip = 1, col_names = c("time", "raacc_x", "raacc_y", "raacc_z")) 
-lhip_acc <- read_csv(here(id,session, "imu", "left_hip","accel.csv"), skip = 1, col_names = c("time", "lhacc_x", "lhacc_y", "lhacc_z")) 
-rhip_acc <- read_csv(here(id,session, "imu", "right_hip","accel.csv"), skip = 1, col_names = c("time", "rhacc_x", "rhacc_y", "rhacc_z")) 
-lankle_gyr <- read_csv(here(id,session, "imu", "left_ankle","gyro.csv"), skip = 1,  col_names = c("time", "lagyr_x", "lagyr_y", "lagyr_z")) 
-rankle_gyr <- read_csv(here(id,session, "imu", "right_ankle","gyro.csv"), skip = 1, col_names = c("time", "ragyr_x", "ragyr_y", "ragyr_z")) 
-lhip_gyr <- read_csv(here(id,session, "imu", "left_hip","gyro.csv"), skip = 1, col_names = c("time", "lhgyr_x", "lhgyr_y", "lhgyr_z")) 
-rhip_gyr <- read_csv(here(id,session, "imu", "right_hip","gyro.csv"), skip = 1, col_names = c("time", "rhgyr_x", "rhgyr_y", "rhgyr_z")) 
+read_infant_imu <- function(name) {
+  name_long <- name
+  name <- str_split_fixed(name, "_", n = 3) %>% as.list(.) %>%  set_names(c("side","part","signal"))
+  file <- here(id,session, "imu", glue("{name$side}_{name$part}"),glue("{name$signal}.csv"))
+  col_names <- c("time", 
+                 glue("{str_sub(name$side,1,1)}{str_sub(name$part,1,1)}{str_sub(name$signal,1,3)}_x"), 
+                 glue("{str_sub(name$side,1,1)}{str_sub(name$part,1,1)}{str_sub(name$signal,1,3)}_y"), 
+                 glue("{str_sub(name$side,1,1)}{str_sub(name$part,1,1)}{str_sub(name$signal,1,3)}_z"))
+  assign(name_long, read_csv(file, skip = 1, col_names = col_names), envir = .GlobalEnv)
+}
 
-sensor_data <- c("lankle_acc", "rankle_acc", "lhip_acc", "rhip_acc", "lankle_gyr", "rankle_gyr", "lhip_gyr","rhip_gyr")
+if (who == "infant") {
+  sensor_data <- c("left_ankle_accel", "right_ankle_accel", "left_hip_accel", "right_hip_accel", "left_ankle_gyro", "right_ankle_gyro", "left_hip_gyro","right_hip_gyro")
+  walk(sensor_data, ~read_infant_imu(.x))
+} else if (who == "parent") {
+    
+  }
+
+
+
 
 filter_and_fix_time <- function(data_string, start_time, end_time) {
   temp_ds <- get(data_string)
@@ -89,6 +100,7 @@ slide <- slide_period_dfr(ds_coded, .i = ds_coded$time, .period = "second", .eve
 
 save(slide, file = here(id,session, "coding", "slide_inf.RData"))
 
+#SHOULD ALSO INCLUDE A FEATURE SET FOR THE ENTIRE DAY...
 
 
 #-----------
