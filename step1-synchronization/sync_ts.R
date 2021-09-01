@@ -12,7 +12,7 @@ source(here("step1-synchronization","motion_features.R"))
 
 id <- 102
 session <- 1
-who <- "infant"
+who <- "parent"
 start_time <- "2021-07-12 12:00:00"
 end_time <- "2021-07-12 20:00:00"
 
@@ -48,9 +48,12 @@ filter_and_fix_time <- function(data_string, start_time, end_time, who) {
   temp_ds <- get(data_string)
   fix_biostamp_time <- function(x) as_datetime((round(x/1000000, 2)), tz = "America/Los_Angeles")
   
-  temp_ds <- temp_ds %>% mutate(time = fix_biostamp_time(time))
+  if (who == "infant") {
+    temp_ds <- temp_ds %>% mutate(time = fix_biostamp_time(time))
+    } else 
   if (who == "parent") {
-    temp_ds <- temp_ds %>% mutate(time = time + hours(1))
+    temp_ds <- temp_ds %>% mutate(time = as_datetime(time, tz = "America/Los_Angeles") + hours(7))
+    temp_ds <- temp_ds %>% mutate(time = time + hours(1)) #CRAP IS THIS A DAYLIGHT SAVINGS THING?
   }  
   temp_ds <- temp_ds %>% filter_by_time(time, start_time, end_time) 
   assign(paste0(data_string,"_filt"), temp_ds, envir = .GlobalEnv)
@@ -71,26 +74,34 @@ ds  <- ds %>% mutate(across(-time, ~ts_impute_vec(.x)))
 
 #ds %>% plot_time_series(time, laacc_x, .smooth = F, .interactive = F)
 
-
-# IMPORT CODED ACTIVITY -----
-activity <- read_csv(here(id,session, "coding", "activity.csv"), col_names = c("onset", "offset", "code"))
-activity <- activity %>% mutate(across(onset:offset, ~ .x/1000))
-valid_codes <- c("d","u","s","sr","ss","sc","w","c","p","hs","hw","l")
-activity_special <- activity %>% filter(!code %in% valid_codes)
-activity <- activity %>% filter(code %in%valid_codes)
-
-#Offset based on jump time
-
+# USE INFANT SYNC POINT FROM BIOSTAMP TO CORRECT ACTIVITY TIMES -----
 anno <- read_csv(here(id,session, "coding", "biostamp_annotations.csv")) %>% 
   rename_with(~ janitor::make_clean_names(.x)) %>% 
   mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles")))
 
 sync_point <- anno %>% filter(value == "sync") %>% pull(start_timestamp_ms)
 
-activity  <-  activity %>% mutate(across(onset:offset, ~ sync_point + seconds(.x)))
+# IMPORT CODED ACTIVITY -----
+if (who == "infant") {
+  activity <- read_csv(here(id, session, "coding", "activity.csv"),col_names = c("onset", "offset", "code"))
+} else
+  if (who == "parent") {
+    activity <- read_csv(here(id, session, "coding", "activity_parent.csv"),col_names = c("onset", "offset", "code"))
+  }
+activity <- activity %>% mutate(across(onset:offset, ~ sync_point + seconds(.x/1000)))
+valid_codes <- c("d","u","s","sr","ss","sc","w","c","p","hs","hw","l")
+activity_special <- activity %>% filter(!code %in% valid_codes)
+activity <- activity %>% filter(code %in%valid_codes)
+
+if (who == "parent") {
+  wrist_video_time <- activity_special %>% filter(code == "wrist") %>% pull(onset) 
+  wrist_sync <- ds %>% filter(wacc_x > 3) %>% slice_head() %>%  pull(time) #NEED TO FIX THIS FOR FUTURE PPTS
+  time_diff <- wrist_sync - wrist_video_time
+  ds$time <- ds$time + time_diff
+}
 
 # Match activity codes to imu data based on time
-ds$code <- NA
+ds$code <- as.character(NA)
 for (i in 1:nrow(activity)) {
   ds[between_time(ds$time, activity$onset[i], activity$offset[i]),]$code <- activity$code[i]
 } 
@@ -100,14 +111,15 @@ start_time_coded <- activity %>% slice_head %>% pull(onset)
 end_time_coded <- activity %>% slice_tail %>% pull(offset)
 ds_coded <-ds %>% filter_by_time(time, start_time_coded, end_time_coded)
 
-ds_coded %>% plot_time_series(time, laacc_x, .color_var = code, .smooth = F)
+# ds_coded %>% plot_time_series(time, laacc_x, .color_var = code, .smooth = F)
+# ds_coded %>% plot_time_series(time, hacc_z, .color_var = code, .smooth = F)
 
 
 # MOTION FEATURES ------
 # sliding 4 second windows every 1 second
 slide <- slide_period_dfr(ds_coded, .i = ds_coded$time, .period = "second", .every = 2, .after = 1, ~ motion_features(.x, who))
 
-save(slide, file = here(id,session, "synced_data", glue("mot_features_{who}.RData"))
+save(slide, file = here(id,session, "synced_data", glue("mot_features_{who}.RData")))
 
 #SHOULD ALSO INCLUDE A FEATURE SET FOR THE ENTIRE DAY...
 
