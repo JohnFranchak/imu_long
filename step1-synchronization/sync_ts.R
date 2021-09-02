@@ -12,7 +12,7 @@ source(here("step1-synchronization","motion_features.R"))
 
 id <- 102
 session <- 1
-who <- "infant"
+who <- "parent"
 start_time <- "2021-07-12 12:00:00"
 end_time <- "2021-07-12 20:00:00"
 complete <-  TRUE
@@ -126,12 +126,14 @@ end_time_coded <- activity %>% slice_tail %>% pull(offset)
 # sliding 4 second windows every 1 second
 
 #CHANGE COMPLETE TO TRUE TO GET ALL FEATURES
+
 slide <- slide_period_dfr(ds, 
                           .i = ds$time, 
                           .period = "second", 
                           .every = 2, 
                           .after = 1, 
                           .origin = start_time_coded, 
+                          .complete = TRUE,
                           ~ motion_features(.x, who, complete = complete))
 
 #Note video and nap periods
