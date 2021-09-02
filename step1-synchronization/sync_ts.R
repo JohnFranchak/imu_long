@@ -12,7 +12,7 @@ source(here("step1-synchronization","motion_features.R"))
 
 id <- 102
 session <- 1
-who <- "parent"
+who <- "infant"
 start_time <- "2021-07-12 12:00:00"
 end_time <- "2021-07-12 20:00:00"
 
@@ -107,40 +107,39 @@ for (i in 1:nrow(activity)) {
   ds[between_time(ds$time, activity$onset[i], activity$offset[i]),]$code <- activity$code[i]
 } 
 
+ds_coded <-ds %>% filter_by_time(time, start_time, end_time)
+
 #Identify start and end times of coded period
 
 start_time_coded <- activity %>% slice_head %>% pull(onset)
 end_time_coded <- activity %>% slice_tail %>% pull(offset)
-# ds_coded <-ds %>% filter_by_time(time, start_time_coded, end_time_coded)
 
 # ds_coded %>% plot_time_series(time, laacc_x, .color_var = code, .smooth = F)
 # ds_coded %>% plot_time_series(time, hacc_z, .color_var = code, .smooth = F)
 
-
 # MOTION FEATURES ------
 # sliding 4 second windows every 1 second
 
+#CHANGE COMPLETE TO TRUE TO GET ALL FEATURES
 slide <- slide_period_dfr(ds, 
                           .i = ds$time, 
                           .period = "second", 
                           .every = 2, 
                           .after = 1, 
                           .origin = start_time_coded, 
-                          ~ motion_features(.x, who))
+                          ~ motion_features(.x, who, complete = T))
 
 #Note video and nap periods
 slide$video_period <- 0
 slide[between_time(slide$time, start_time_coded, end_time_coded),]$video_period <- 1
 
 slide$nap_period <- 0
-naps <- anno %>% filter(value == "nap")
+nap <- anno %>% filter(value == "nap")
 for (i in 1:nrow(nap)) {
   slide[between_time(slide$time, nap$start_timestamp_ms[i], nap$stop_timestamp_ms[i]),]$nap_period <- 1
 } 
 
 save(slide, file = here(id,session, "synced_data", glue("mot_features_{who}.RData")))
-
-#SHOULD ALSO INCLUDE A FEATURE SET FOR THE ENTIRE DAY...
 
 
 # DEBUGGING ----------- 
@@ -153,3 +152,12 @@ save(slide, file = here(id,session, "synced_data", glue("mot_features_{who}.RDat
 
 #MULTIPLY TIME BY 4 TO RETURN TO ORIGINAL TIMESCALE
 #slide$time <- as.POSIXct(as_date(seconds(slide$time)*4))
+
+#check that slide runs over entire period (it does)
+# slide_test <- slide_period(ds, 
+# .i = ds$time, 
+# .period = "second", 
+# .every = 2, 
+# .after = 1, 
+# .origin = start_time_coded, 
+# ~ median(.x$time, na.rm = T))

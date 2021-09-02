@@ -13,10 +13,9 @@ library(tidyverse)
 #LOAD DATA
 id <- 102
 session <- 1
-who <- "parent"
+who <- "infant"
 
-
-slide_filt <- slide 
+slide_filt <- slide %>% filter(video_period == 1) %>% select(-video_period, -nap_period)
 #CODE FACTORS
 if (who == "parent") {
   slide_filt$code = ifelse(slide_filt$code == "s", "d", slide_filt$code)
@@ -42,3 +41,8 @@ u <- union(predictions, testing$code)
 res <- confusion_matrix(factor(testing$code, u),factor(predictions, u))
 res$`Balanced Accuracy`
 res$`Table`
+
+#FULL DAY ---- 
+predictions_full <- slide %>% select(time, nap_period, video_period) %>% 
+  bind_cols(tibble(pos = predict(rfmodel, slide, type = "class")))
+predictions_full %>% filter(nap_period == 0) %>% pull(pos) %>% fct_count(prop = T)
