@@ -15,6 +15,9 @@ session <- 1
 who <- "infant"
 start_time <- "2021-07-12 12:00:00"
 end_time <- "2021-07-12 20:00:00"
+complete <-  TRUE
+
+session_param <- list(id = id, session = session, who = who, start_time = start_time, end_time = end_time, complete = complete)
 
 # READ DATA -----
 read_infant_imu <- function(name) {
@@ -114,6 +117,8 @@ ds_coded <-ds %>% filter_by_time(time, start_time, end_time)
 start_time_coded <- activity %>% slice_head %>% pull(onset)
 end_time_coded <- activity %>% slice_tail %>% pull(offset)
 
+
+
 # ds_coded %>% plot_time_series(time, laacc_x, .color_var = code, .smooth = F)
 # ds_coded %>% plot_time_series(time, hacc_z, .color_var = code, .smooth = F)
 
@@ -127,7 +132,7 @@ slide <- slide_period_dfr(ds,
                           .every = 2, 
                           .after = 1, 
                           .origin = start_time_coded, 
-                          ~ motion_features(.x, who, complete = T))
+                          ~ motion_features(.x, who, complete = complete))
 
 #Note video and nap periods
 slide$video_period <- 0
@@ -139,7 +144,10 @@ for (i in 1:nrow(nap)) {
   slide[between_time(slide$time, nap$start_timestamp_ms[i], nap$stop_timestamp_ms[i]),]$nap_period <- 1
 } 
 
-save(slide, file = here(id,session, "synced_data", glue("mot_features_{who}.RData")))
+session_param$start_time_coded <- start_time_coded
+session_param$end_time_coded <- end_time_coded
+
+save(slide, session_param, file = here(id,session, "synced_data", glue("mot_features_{who}.RData")))
 
 
 # DEBUGGING ----------- 
