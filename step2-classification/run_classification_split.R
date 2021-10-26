@@ -13,7 +13,7 @@ library(tidyverse)
 #LOAD DATA
 id <- 102
 session <- 1
-who <- "infant"
+who <- "parent"
 
 slide_filt <- slide %>% filter(video_period == 1) %>% select(-video_period, -nap_period)
 #CODE FACTORS

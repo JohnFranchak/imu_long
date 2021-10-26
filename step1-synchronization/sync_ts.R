@@ -11,10 +11,10 @@ library(glue)
 source(here("step1-synchronization","motion_features.R"))
 
 id <- 102
-session <- 1
-who <- "parent"
-start_time <- "2021-07-12 12:00:00"
-end_time <- "2021-07-12 20:00:00"
+session <- 3
+who <- "infant"
+start_time <- "2021-09-11 9:13:00"
+end_time <- "2021-09011 20:13"
 complete <-  TRUE
 
 session_param <- list(id = id, session = session, who = who, start_time = start_time, end_time = end_time, complete = complete)
