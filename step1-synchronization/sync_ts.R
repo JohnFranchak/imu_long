@@ -8,13 +8,14 @@ library(cvms)
 library(caret)
 library(tidyverse)
 library(glue)
-source(here("step1-synchronization","motion_features.R"))
+i_am(".here")
+source(here("code","step1-synchronization","motion_features.R"))
 
 id <- 102
 session <- 3
 who <- "infant"
-start_time <- "2021-09-11 9:13:00"
-end_time <- "2021-09011 20:13"
+start_time <- "2021-09-11 09:13:00"
+end_time <- "2021-09-11 20:13:00"
 complete <-  TRUE
 
 session_param <- list(id = id, session = session, who = who, start_time = start_time, end_time = end_time, complete = complete)
@@ -23,7 +24,7 @@ session_param <- list(id = id, session = session, who = who, start_time = start_
 read_infant_imu <- function(name) {
   name_long <- name
   name <- str_split_fixed(name, "_", n = 3) %>% as.list(.) %>%  set_names(c("side","part","signal"))
-  file <- here(id,session, "imu", glue("{name$side}_{name$part}"),glue("{name$signal}.csv"))
+  file <- here("data",id,session, "imu", glue("{name$side}_{name$part}"),glue("{name$signal}.csv"))
   col_names <- c("time", 
                  glue("{str_sub(name$side,1,1)}{str_sub(name$part,1,1)}{str_sub(name$signal,1,3)}_x"), 
                  glue("{str_sub(name$side,1,1)}{str_sub(name$part,1,1)}{str_sub(name$signal,1,3)}_y"), 
@@ -32,7 +33,7 @@ read_infant_imu <- function(name) {
 }
 
 read_parent_imu <- function(name) {
-  file <- here(id,session, "imu", "caregiver",glue("{name}.csv"))
+  file <- here("data",id,session, "imu", "caregiver",glue("{name}.csv"))
   col_names <- c("time", glue("{str_sub(name,1,1)}acc_x"), glue("{str_sub(name,1,1)}acc_y"), glue("{str_sub(name,1,1)}acc_z"),
                  glue("{str_sub(name,1,1)}gyr_x"), glue("{str_sub(name,1,1)}gyr_y"), glue("{str_sub(name,1,1)}gyr_z"))
   assign(name, read_csv(file, skip = 1, col_names = col_names), envir = .GlobalEnv)
