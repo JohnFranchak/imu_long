@@ -79,18 +79,19 @@ ds  <- ds %>% mutate(across(-time, ~ts_impute_vec(.x)))
 #ds %>% plot_time_series(time, laacc_x, .smooth = F, .interactive = F)
 
 # USE INFANT SYNC POINT FROM BIOSTAMP TO CORRECT ACTIVITY TIMES -----
-anno <- read_csv(here(id,session, "coding", "biostamp_annotations.csv")) %>% 
+#HAD TO ADD A CONSTANT OF MINUS 1 HOUR, NOT SURE WHY??
+anno <- read_csv(here("data",id,session, "coding", "biostamp_annotations.csv")) %>% 
   rename_with(~ janitor::make_clean_names(.x)) %>% 
-  mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles")))
+  mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles")- hours(1)))
 
 sync_point <- anno %>% filter(value == "sync") %>% pull(start_timestamp_ms)
 
 # IMPORT CODED ACTIVITY -----
 if (who == "infant") {
-  activity <- read_csv(here(id, session, "coding", "activity.csv"),col_names = c("onset", "offset", "code"))
+  activity <- read_csv(here("data",id, session, "coding", "activity.csv"),col_names = c("onset", "offset", "code"))
 } else
   if (who == "parent") {
-    activity <- read_csv(here(id, session, "coding", "activity_parent.csv"),col_names = c("onset", "offset", "code"))
+    activity <- read_csv(here("data",id, session, "coding", "activity_parent.csv"),col_names = c("onset", "offset", "code"))
   }
 activity <- activity %>% mutate(across(onset:offset, ~ sync_point + seconds(.x/1000)))
 valid_codes <- c("d","u","s","sr","ss","sc","w","c","p","hs","hw","l")
@@ -117,8 +118,6 @@ ds_coded <-ds %>% filter_by_time(time, start_time, end_time)
 
 start_time_coded <- activity %>% slice_head %>% pull(onset)
 end_time_coded <- activity %>% slice_tail %>% pull(offset)
-
-
 
 # ds_coded %>% plot_time_series(time, laacc_x, .color_var = code, .smooth = F)
 # ds_coded %>% plot_time_series(time, hacc_z, .color_var = code, .smooth = F)

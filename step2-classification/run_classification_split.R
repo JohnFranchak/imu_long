@@ -11,9 +11,9 @@ library(caret)
 library(tidyverse)
 
 #LOAD DATA
-id <- 102
-session <- 1
-who <- "parent"
+id <- 103
+session <- 3
+who <- "infant"
 
 slide_filt <- slide %>% filter(video_period == 1) %>% select(-video_period, -nap_period)
 #CODE FACTORS
