@@ -121,7 +121,7 @@ unless disagree_col_name == ''
 end
 
 # Save pri column as clean column
-set_column(clean_col_name, col_pri)
+#set_column(clean_col_name, col_pri)
 
 hide_columns(*get_column_list)
 show_columns(*columns_to_show)
