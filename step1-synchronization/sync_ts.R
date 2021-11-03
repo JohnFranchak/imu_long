@@ -11,11 +11,11 @@ library(glue)
 i_am(".here")
 source(here("code","step1-synchronization","motion_features.R"))
 
-id <- 102
-session <- 3
+id <- 99
+session <- 8
 who <- "infant"
-start_time <- "2021-09-11 09:13:00"
-end_time <- "2021-09-11 20:13:00"
+start_time <- "2021-03-30 10:25:00"
+end_time <- "2021-03-30 17:15:00"
 complete <-  TRUE
 
 session_param <- list(id = id, session = session, who = who, start_time = start_time, end_time = end_time, complete = complete)
@@ -79,10 +79,10 @@ ds  <- ds %>% mutate(across(-time, ~ts_impute_vec(.x)))
 #ds %>% plot_time_series(time, laacc_x, .smooth = F, .interactive = F)
 
 # USE INFANT SYNC POINT FROM BIOSTAMP TO CORRECT ACTIVITY TIMES -----
-#HAD TO ADD A CONSTANT OF MINUS 1 HOUR, NOT SURE WHY??
+#FOR SOME PPTS, NEED TO ADD A CONSTANT OF MINUS 1 HOUR, NOT SURE WHY??
 anno <- read_csv(here("data",id,session, "coding", "biostamp_annotations.csv")) %>% 
   rename_with(~ janitor::make_clean_names(.x)) %>% 
-  mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles")- hours(1)))
+  mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles"))) #- hours(1)
 
 sync_point <- anno %>% filter(value == "sync") %>% pull(start_timestamp_ms)
 
@@ -149,7 +149,7 @@ for (i in 1:nrow(nap)) {
 session_param$start_time_coded <- start_time_coded
 session_param$end_time_coded <- end_time_coded
 
-save(slide, session_param, file = here(id,session, "synced_data", glue("mot_features_{who}.RData")))
+save(slide, session_param, file = here("data",id,session, "synced_data", glue("mot_features_{who}.RData")))
 
 
 # DEBUGGING ----------- 

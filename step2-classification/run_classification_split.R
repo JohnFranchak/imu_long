@@ -9,11 +9,14 @@ library(randomForest)
 library(cvms)
 library(caret)
 library(tidyverse)
+library(glue)
+i_am(".here")
 
 #LOAD DATA
-id <- 103
-session <- 3
+id <- 102
+session <- 1
 who <- "infant"
+load(here("data",id,session, "synced_data", glue("mot_features_{who}.RData")))
 
 slide_filt <- slide %>% filter(video_period == 1) %>% select(-video_period, -nap_period)
 #CODE FACTORS
@@ -46,3 +49,5 @@ res$`Table`
 predictions_full <- slide %>% select(time, nap_period, video_period) %>% 
   bind_cols(tibble(pos = predict(rfmodel, slide, type = "class")))
 predictions_full %>% filter(nap_period == 0) %>% pull(pos) %>% fct_count(prop = T)
+
+write_csv(predictions_full, here("data",id,session, "synced_data", glue("position_predictions_{who}.csv")))
