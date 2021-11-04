@@ -13,8 +13,8 @@ library(glue)
 i_am(".here")
 
 #LOAD DATA
-id <- 102
-session <- 1
+id <- 99
+session <- 8
 who <- "infant"
 load(here("data",id,session, "synced_data", glue("mot_features_{who}.RData")))
 
@@ -36,6 +36,8 @@ slide_filt <- slide_filt %>% arrange(code, time)
 training <- slide_filt %>% group_by(code) %>% slice_head(prop = .6) %>% ungroup %>% select(-time) 
 testing <- slide_filt %>% group_by(code) %>% slice_tail(prop = .4) %>% ungroup %>% select(-time) 
 
+all_na <- function(x) any(!is.na(x))
+training <- training %>% select_if(all_na)
 rfmodel <- randomForest(code ~ ., data = training, localImp = TRUE, proximity = FALSE, ntree = 150)
 
 predictions <- predict(rfmodel, testing, type = "class")

@@ -12,10 +12,10 @@ i_am(".here")
 source(here("code","step1-synchronization","motion_features.R"))
 
 id <- 99
-session <- 8
+session <- 10
 who <- "infant"
-start_time <- "2021-03-30 10:25:00"
-end_time <- "2021-03-30 17:15:00"
+start_time <- "2021-05-25 09:29:00"
+end_time <- "2021-05-25 20:20:00"
 complete <-  TRUE
 
 session_param <- list(id = id, session = session, who = who, start_time = start_time, end_time = end_time, complete = complete)

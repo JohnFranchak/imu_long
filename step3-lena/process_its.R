@@ -5,26 +5,27 @@ library(tidyverse)
 library(glue)
 i_am(".here")
 
-id <- 99
-session <- 8
+id <- 103
+session <- 1
 who <- "infant"
 
-lena_dir <- glue("data/{id}/{session}/lena")
-lena_dir_output <- glue("data/{id}/{session}/lena/output")
+setwd(here("data",id,session,"lena"))
 
 check_multiday(
-  ITS.dir = lena_dir,
-  CSV.dir = lena_dir_output,
+  ITS.dir = "its",
+  CSV.dir = "output",
   time.zone = "America/Los_Angeles")
 
 ITS_to_seconds(
-  ITS.dir = lena_dir,
-  CSV.dir = lena_dir_output,
+  ITS.dir = "its",
+  CSV.dir = "output",
   time.zone = "America/Los_Angeles")
 
 bin_seconds(
-  seconds.dir = glue("data/{id}/{session}/lena/output/seconds"),
-  output.dir = glue("data/{id}/{session}/lena/output/bin"),
+  seconds.dir = "output/seconds",
+  output.dir = "output/bin",
   bin.to.mins = 10,
   roll.by.mins = 5,
   align.rows = "midnight")
+
+i_am(".here")
