@@ -6,8 +6,8 @@ library(lubridate)
 library(glue)
 i_am(".here")
 
-id <- 99
-session <- 8
+id <- 102
+session <- 1
 who <- "infant"
 
 p <- read_csv(here("data",id,session,"synced_data","position_predictions_infant.csv")) %>% 
