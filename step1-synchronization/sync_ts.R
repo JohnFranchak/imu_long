@@ -146,6 +146,12 @@ for (i in 1:nrow(nap)) {
   slide[between_time(slide$time, nap$start_timestamp_ms[i], nap$stop_timestamp_ms[i]),]$nap_period <- 1
 } 
 
+slide$exclude_period <- 0
+excl <- anno %>% filter(value == "exclude")
+for (i in 1:nrow(excl)) {
+  slide[between_time(slide$time, excl$start_timestamp_ms[i], excl$stop_timestamp_ms[i]),]$exclude_period <- 1
+} 
+
 session_param$start_time_coded <- start_time_coded
 session_param$end_time_coded <- end_time_coded
 

@@ -1,35 +1,35 @@
 library(tidyverse)
 library(here)
 library(lubridate)
+i_am(".here")
 
-load(file = here("102","1","synced_data","synced_data.RData"))
-start_time <- min(p$clock_time)
-stop_time <- max(p$clock_time)
+id <- 99
+session <- 8
 
-lena <- read_csv(here("102","1","synced_data", "102_1_10mins.csv")) 
+p <- read_csv(here("data",id,session,"synced_data","position_predictions_infant.csv")) %>% 
+  mutate(pos = factor(pos, levels = c("Prone","Upright","Held","Sitting","Supine")))
+p$time <- with_tz(p$time, "America/Los_Angeles")
+start_time <- min(p$time)
+stop_time <- max(p$time)
+
+lena <- read_csv(here("data",id,session,"lena","output","bin","10mins_midnight_CRTRUE_RW5min_alldata","lena_10mins_midnight_CRTRUE_RW5min_alldata.csv")) 
+lena$clock_time_start <- with_tz(lena$dateTimeStart_UTC,  "America/Los_Angeles")
+lena$clock_time_end <- with_tz(lena$dateTimeEnd_UTC,  "America/Los_Angeles")
 
 ggplot(p) + 
-  geom_path(aes(x = clock_time, y =.975,color = posture, group = 1L), size = 20) + 
+  geom_path(aes(x = time, y =.975,color = pos, group = 1L), size = 20) + 
   scale_x_datetime(date_break = "1 hour", date_labels = "%H:%M") + xlab("") + 
   ylim(.95,1.1) + theme(legend.position = "top") 
 
-lena <- lena %>% mutate(scaled_ctc = convTurnCount/32/10 + 1,
-                        scaled_tvn = TVN/147.09/10 + 1,
-                        scaled_cry = childCryScnds/89.95/10 + 1,
-                        clock_time = dateTimeStart_UTC + seconds(150) - hours(7),
-                        clock_time_start = clock_time - seconds(150),
-                        clock_time_end = clock_time + seconds(150)) %>% 
-                filter(clock_time > start_time, clock_time < stop_time)
-
+lena <- lena %>% filter(clock_time_start > start_time, clock_time_end < stop_time)
 
 ggplot(p) + 
-  geom_path(aes(x = clock_time, y =.975,color = posture, group = 1L), size = 20) + 
-  geom_point(data = lena, aes(x = clock_time, y = scaled_ctc)) +
-  geom_line(data = lena, aes(x = clock_time, y = scaled_ctc)) +
+  #geom_path(aes(x = time, y =.975,color = pos, group = 1L), size = 20) + 
+  geom_point(data = lena, aes(x = clock_time_start, y = convTurnCount)) +
+  geom_line(data = lena, aes(x = clock_time_start, y = convTurnCount)) +
   #geom_point(data = lena, aes(x = clock_time, y = scaled_tvn), color = "red") +
   #geom_point(data = lena, aes(x = clock_time, y = scaled_cry), color = "orange") +
-  scale_x_datetime(date_break = "1 hour", date_labels = "%H:%M") + xlab("") + 
-  ylim(.95,1.1) + theme(legend.position = "top") 
+  scale_x_datetime(date_break = "1 hour", date_labels = "%H:%M") + xlab("")
 
 #Add posture summary categories to lena windows
 lena <- lena %>% mutate(
@@ -40,10 +40,10 @@ lena <- lena %>% mutate(
   upright_time = NA,
 )
 
-for (i in 1:nrow(tv)) {
-  temp_posture <- p %>% filter(clock_time >= lena$clock_time_start[i], clock_time < lena$clock_time_end[i], nap == 1)
+for (i in 1:nrow(lena)) {
+  temp_posture <- p %>% filter(time >= lena$clock_time_start[i], time < lena$clock_time_end[i], nap_period == 0)
   if (!is.null(temp_posture)) {
-    prop <- fct_count(temp_posture$posture, prop = T)
+    prop <- fct_count(temp_posture$pos, prop = T)
     lena$sit_time[i] <- prop %>% filter(f == "Sitting") %>% pull(p)
     lena$held_time[i] <- prop %>% filter(f == "Held") %>% pull(p)
     lena$prone_time[i] <- prop %>% filter(f == "Prone") %>% pull(p)
@@ -52,7 +52,8 @@ for (i in 1:nrow(tv)) {
   }
 }
 
-ggplot(lena, aes(x = sit_time, y = adultWordCnt)) + geom_point()
+ggplot(lena, aes(x = upright_time, y = adultWordCnt)) + geom_point()
+rstatix::cor_test(lena, upright_time, adultWordCnt)
 
 lena_long <- lena %>% pivot_longer(sit_time:upright_time, names_to = "posture", values_to = "prop") %>% 
   mutate(posture = factor(posture, 
@@ -60,3 +61,6 @@ lena_long <- lena %>% pivot_longer(sit_time:upright_time, names_to = "posture", 
                           labels = c("Sitting", "Held", "Prone", "Supine", "Upright")))
 
 ggplot(lena_long, aes(y = prop, x = posture)) + geom_boxplot()
+
+ggplot(lena_long, aes(y = prop, x = clock_time_start, fill = posture)) + geom_bar(position = "stack", stat = "identity")
+

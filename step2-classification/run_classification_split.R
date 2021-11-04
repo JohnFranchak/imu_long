@@ -36,8 +36,8 @@ slide_filt <- slide_filt %>% arrange(code, time)
 training <- slide_filt %>% group_by(code) %>% slice_head(prop = .6) %>% ungroup %>% select(-time) 
 testing <- slide_filt %>% group_by(code) %>% slice_tail(prop = .4) %>% ungroup %>% select(-time) 
 
-all_na <- function(x) any(!is.na(x))
-training <- training %>% select_if(all_na)
+not_all_na <- function(x) any(!is.na(x))
+training <- training %>% select_if(not_all_na)
 rfmodel <- randomForest(code ~ ., data = training, localImp = TRUE, proximity = FALSE, ntree = 150)
 
 predictions <- predict(rfmodel, testing, type = "class")
@@ -48,8 +48,11 @@ res$`Balanced Accuracy`
 res$`Table`
 
 #FULL DAY ---- 
-predictions_full <- slide %>% select(time, nap_period, video_period) %>% 
-  bind_cols(tibble(pos = predict(rfmodel, slide, type = "class")))
+#Have to add exclude period for ones that don't have it
+predictions_full <- slide %>% 
+  select(time, nap_period, video_period, exclude_period) %>% 
+  bind_cols(tibble(pos = predict(rfmodel, slide, type = "class"))) %>% 
+  filter(exclude_period == 0) 
 predictions_full %>% filter(nap_period == 0) %>% pull(pos) %>% fct_count(prop = T)
 
 write_csv(predictions_full, here("data",id,session, "synced_data", glue("position_predictions_{who}.csv")))
