@@ -4,8 +4,8 @@ library(lubridate)
 library(patchwork)
 i_am(".here")
 
-id <- 99
-session <- 8
+id <- 102
+session <- 1
 
 p <- read_csv(here("data",id,session,"synced_data","position_predictions_infant.csv")) %>% 
   mutate(pos = factor(pos, levels = c("Prone","Upright","Held","Sitting","Supine")))
@@ -59,14 +59,14 @@ rstatix::cor_test(lena, upright_time, adultWordCnt)
 lena_long <- lena %>% pivot_longer(sit_time:upright_time, names_to = "posture", values_to = "prop") %>% 
   mutate(posture = factor(posture, 
                           levels = c("sit_time", "held_time", "prone_time", "supine_time", "upright_time"), 
-                          labels = c("Sitting", "Held", "Prone", "Supine", "Upright"))) %>% 
-  filter(clock_time_start < stop_time - hours(2) - minutes (30))
+                          labels = c("Sitting", "Held", "Prone", "Supine", "Upright"))) #%>% 
+  #filter(clock_time_start < stop_time - hours(2) - minutes (30))
 
 ggplot(lena_long, aes(y = prop, x = posture)) + geom_boxplot()
 
 axes <- scale_x_datetime(date_break = "1 hour", date_labels = "%H:%M", name = "")
 p1 <- ggplot(lena_long, aes(y = prop, x = clock_time_start, fill = posture)) + geom_bar(position = "stack", stat = "identity") + axes
-p2 <- ggplot(lena_long, aes(y = TVN, x = clock_time_start)) + geom_point() + geom_line() + axes
-p3 <- ggplot(lena_long, aes(y = adultWordCnt, x = clock_time_start)) + geom_point() + geom_line() + axes
+p2 <- ggplot(lena_long, aes(y = adultWordCnt, x = clock_time_start)) + geom_point() + geom_line() + axes
+p3 <- ggplot(lena_long, aes(y = TVN, x = clock_time_start)) + geom_point() + geom_line() + axes
 p4 <- ggplot(lena_long, aes(y = SIL, x = clock_time_start)) + geom_point() + geom_line()+ axes
 p1/ p2 / p3 / p4
