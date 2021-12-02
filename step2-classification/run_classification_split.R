@@ -13,8 +13,8 @@ library(glue)
 i_am(".here")
 
 #LOAD DATA
-id <- 99
-session <- 8
+id <- 103
+session <- 1
 who <- "infant"
 load(here("data",id,session, "synced_data", glue("mot_features_{who}.RData")))
 

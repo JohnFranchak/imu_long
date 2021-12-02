@@ -11,11 +11,15 @@ library(glue)
 i_am(".here")
 source(here("code","step1-synchronization","motion_features.R"))
 
-id <- 99
-session <- 10
+id <- 102
+session <- 4
 who <- "infant"
-start_time <- "2021-05-25 09:29:00"
-end_time <- "2021-05-25 20:20:00"
+
+# sync_info <- read_csv(here("data","sync_info.csv"))
+# start_time <- sync_info %>% filter(id == .env[["id"]], session == .env[["session"]]) %>% pull(start_time)
+
+start_time <- "2021-10-23 10:00:00"
+end_time <- "2021-10-23 20:00:00"
 complete <-  TRUE
 
 session_param <- list(id = id, session = session, who = who, start_time = start_time, end_time = end_time, complete = complete)
@@ -150,7 +154,7 @@ slide$exclude_period <- 0
 excl <- anno %>% filter(value == "exclude")
 for (i in 1:nrow(excl)) {
   slide[between_time(slide$time, excl$start_timestamp_ms[i], excl$stop_timestamp_ms[i]),]$exclude_period <- 1
-} 
+}
 
 session_param$start_time_coded <- start_time_coded
 session_param$end_time_coded <- end_time_coded
