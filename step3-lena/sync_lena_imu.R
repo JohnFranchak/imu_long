@@ -7,7 +7,7 @@ library(glue)
 i_am(".here")
 
 id <- 102
-session <- 1
+session <- 4
 who <- "infant"
 
 p <- read_csv(here("data",id,session,"synced_data","position_predictions_infant.csv")) %>% 

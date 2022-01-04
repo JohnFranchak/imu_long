@@ -7,11 +7,12 @@ library(janitor)
 library(rstatix)
 
 #SERVER
-# i_am(".here")
-# ds <- read_csv(here("code","analysis-lena-imu","lena-imu-compiled.csv"))
+i_am(".here")
+ds <- read_csv(here("code","analysis-lena-imu","lena-imu-compiled.csv"))
 
 #MAC
 ds <- read_csv(here("analysis-lena-imu","lena-imu-compiled.csv"))
+
 ds$id <- factor(ds$id*100+ds$session)
 
 ds <- ds %>% select(-(subjID:recIdEnd), -(roll.key:Bin.Mins))
