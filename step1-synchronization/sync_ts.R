@@ -25,6 +25,8 @@ complete <-  TRUE
 session_param <- list(id = id, session = session, who = who, start_time = start_time, end_time = end_time, complete = complete)
 
 # READ DATA -----
+# Reads infant biostamp data 
+# Most of this code is just trying to assign consistent names for each body part x direction x signal type
 read_infant_imu <- function(name) {
   name_long <- name
   name <- str_split_fixed(name, "_", n = 3) %>% as.list(.) %>%  set_names(c("side","part","signal"))
@@ -36,6 +38,7 @@ read_infant_imu <- function(name) {
   assign(name_long, read_csv(file, skip = 1, col_names = col_names), envir = .GlobalEnv)
 }
 
+# This reads parent axivity data
 read_parent_imu <- function(name) {
   file <- here("data",id,session, "imu", "caregiver",glue("{name}.csv"))
   col_names <- c("time", glue("{str_sub(name,1,1)}acc_x"), glue("{str_sub(name,1,1)}acc_y"), glue("{str_sub(name,1,1)}acc_z"),
@@ -43,6 +46,7 @@ read_parent_imu <- function(name) {
   assign(name, read_csv(file, skip = 1, col_names = col_names), envir = .GlobalEnv)
 }
 
+# Read the data for each file
 if (who == "infant") {
   sensor_data <- c("left_ankle_accel", "right_ankle_accel", "left_hip_accel", "right_hip_accel", "left_ankle_gyro", "right_ankle_gyro", "left_hip_gyro","right_hip_gyro")
   walk(sensor_data, ~read_infant_imu(.x))
@@ -52,6 +56,7 @@ if (who == "infant") {
 }
 
 # FIX TIMES ----
+# Get timestamps into participant local datetimes
 filter_and_fix_time <- function(data_string, start_time, end_time, who) {
   temp_ds <- get(data_string)
   fix_biostamp_time <- function(x) as_datetime((round(x/1000000, 2)), tz = "America/Los_Angeles")
@@ -83,14 +88,16 @@ ds  <- ds %>% mutate(across(-time, ~ts_impute_vec(.x)))
 #ds %>% plot_time_series(time, laacc_x, .smooth = F, .interactive = F)
 
 # USE INFANT SYNC POINT FROM BIOSTAMP TO CORRECT ACTIVITY TIMES -----
-#FOR SOME PPTS, NEED TO ADD A CONSTANT OF MINUS 1 HOUR, NOT SURE WHY??
+#FOR SOME PPTS, NEED TO ADD A CONSTANT OF MINUS 1 HOUR, PROBABLY A DST ISSUE
+
+# This annotation file contains the detected sync point time from the time series
 anno <- read_csv(here("data",id,session, "coding", "biostamp_annotations.csv")) %>% 
   rename_with(~ janitor::make_clean_names(.x)) %>% 
   mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles"))) #- hours(1)
 
 sync_point <- anno %>% filter(value == "sync") %>% pull(start_timestamp_ms)
 
-# IMPORT CODED ACTIVITY -----
+# IMPORT CODED ACTIVITY FROM DATAVYU -----
 if (who == "infant") {
   activity <- read_csv(here("data",id, session, "coding", "activity.csv"),col_names = c("onset", "offset", "code"))
 } else
