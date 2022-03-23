@@ -27,6 +27,6 @@ ggplot(ds, aes(x = sit_time, y = adult_word_cnt, color = id)) +
   geom_point() + 
   facet_wrap("id")
 
-ggplot(ds, aes(x = upright_time, y = child_utt_cnt, color = id)) + 
+ggplot(ds, aes(x = upright_time, y = conv_turn_count, color = id)) + 
   geom_point() + 
   facet_wrap("id")
