@@ -1,12 +1,62 @@
-library(mlr3)
-library(mlr3learners)
-library(mlr3viz)
-library(mlr3tuning)
+library(mlr3verse)
 library(paradox)
-library(dplyr)
 library(caret)
-library(readr)
 library(tidyselect)
+library(here)
+library(janitor)
+library(cvms)
+library(caret)
+library(tidyverse)
+library(glue)
+
+#LOAD DATA
+rds <- list.files(here("tune_ml","mot_features"), pattern = ".RData", full.names = T)
+
+load(rds[1])
+slide_all <- slide %>% 
+  mutate(id = session_param$id*100 + session_param$session) %>% 
+  filter(F)
+session <- as_tibble(session_param) %>% filter(F)
+
+for (r in rds) {
+  load(r)
+
+  slide_all <- slide %>% 
+    mutate(id = session_param$id*100 + session_param$session) %>% 
+    bind_rows(slide_all)
+  session <- session %>% bind_rows(as_tibble(session_param))
+  
+  rm(slide)
+  rm(session_param)
+}
+
+
+slide_filt <- slide_all %>% filter(video_period == 1) %>% select(-video_period, -nap_period)
+
+#CODE FACTORS
+slide_filt$code = ifelse(slide_filt$code == "sr", "ss", slide_filt$code)
+slide_filt$code <- factor(slide_filt$code, levels = c("hs", "l","p","ss","u"), labels = c("Held", "Supine","Prone","Sitting","Upright"))
+slide_filt <- slide_filt %>% filter(code_prop > .75) %>% drop_na(code) %>% select(-code_prop)
+
+
+
+
+#SPLIT INTO TRAINING TESTING, THEN RECLASSIFY AND DROP CLASSES
+slide_filt <- slide_filt %>% arrange(code, time)
+
+training <- slide_filt %>% group_by(code) %>% slice_head(prop = .6) %>% ungroup %>% select(-time) 
+testing <- slide_filt %>% group_by(code) %>% slice_tail(prop = .4) %>% ungroup %>% select(-time) 
+
+not_all_na <- function(x) any(!is.na(x))
+training <- training %>% select_if(not_all_na)
+rfmodel <- randomForest(code ~ ., data = training, localImp = TRUE, proximity = FALSE, ntree = 150)
+
+predictions <- predict(rfmodel, testing, type = "class")
+
+u <- union(predictions, testing$code)
+res <- confusion_matrix(factor(testing$code, u),factor(predictions, u))
+res$`Balanced Accuracy`
+res$`Table`
 
 #future::plan("multiprocess")
 
