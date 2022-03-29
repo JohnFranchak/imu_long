@@ -3,53 +3,64 @@ library(janitor)
 library(tidyverse)
 library(tidymodels)
 library(doMC)
+tidymodels_prefer()
 
+#Set cores for parallel processing
 registerDoMC(cores = 8)
+
+# Custom set of multi-class metrics
+multi_metric <- metric_set(accuracy, kap, bal_accuracy, sens, spec)
 
 #LOAD DATA
 load(here("tune_ml","compiled_data.RData"))
 
-data_split <- initial_split(slide_filt, prop = 3/4)
-
+#Split data into train/test, ensuring all ids appear in both
+data_split <- initial_split(slide_filt, prop = 3/4, strata = "id")
 train_data <- training(data_split)
 test_data  <- testing(data_split)
 
+# Create a recipe for pre-processing the training data
 posture <- recipe(code ~ ., data = train_data) %>% 
   update_role(id, new_role = "ID") %>% 
   step_zv(all_predictors())
 
-rf_mod <- rand_forest(mode = "classification", trees = 150) %>%
+# Create a random forest model to classify
+rf_mod <- rand_forest(mode = "classification") %>%
   set_engine("randomForest") 
 
+# Combine the pre-processed data and model into a workflow
 posture_wflow <- 
   workflow() %>% 
   add_model(rf_mod) %>% 
   add_recipe(posture)
 
+# SINGLE MODEL
+
 posture_fit <- 
   posture_wflow %>% 
   fit(data = train_data)
 
-#EVAL SINGLE MODEL
-posture_fit %>% 
-  extract_fit_parsnip() 
+posture_fit %>% extract_fit_parsnip() 
 
+# Add the predictions to the test data
 posture_aug <- augment(posture_fit, test_data)
 
-posture_aug %>% bal_accuracy(truth = code, .pred_class)
-
-posture_aug %>% group_by(id) %>% 
-  bal_accuracy(truth = code, .pred_class)
-
-multi_metric <- metric_set(accuracy, kap, bal_accuracy, sens, spec)
+# Use the augmented model to calculate performance metrics
+posture_aug %>% group_by(id) %>% bal_accuracy(truth = code, .pred_class)
 posture_aug %>% multi_metric(truth = code, estimate = .pred_class)
-
 posture_aug %>% group_by(id) %>% multi_metric(truth = code, estimate = .pred_class)
 posture_aug %>% conf_mat(truth = code, estimate = .pred_class) %>% autoplot(type = "heatmap")
 
-#RESAMPLING
+# RESAMPLING
+
+# Resample by ID
 split_by_id <- group_vfold_cv(train_data, group = "id")
+
+# Resampling workflow
 posture_fit_rs <- 
   posture_wflow %>% 
-  fit_resamples(split_by_id, metrics = multi_metric, control = control_resamples(save_pred = T, parallel_over = "everything"))
+  fit_resamples(split_by_id, metrics = multi_metric, 
+                control = control_resamples(save_pred = T, parallel_over = "everything", verbose = T))
+
 collect_metrics(posture_fit_rs, summarize = F) %>% filter(.metric == "bal_accuracy")
+collect_predictions(posture_fit_rs)
