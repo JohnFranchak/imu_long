@@ -1,21 +1,23 @@
 require 'Datavyu_API.rb'
 
 begin
-    #id = getColumn("id")
-    
     #Create the output file
     out_file = File.expand_path("~/Desktop/activity.csv")
 	out = File.new(out_file,'w')
     
     #Get the data from datavyu
-    trial = getColumn("position")
-    id = getColumn("sync")
+    pos_sync = create_mutually_exclusive("pos_sync", "position", "position_parent")
+    #setColumn("pos_sync", pos_sync)
+    sync = getColumn("sync")
 
-    for tcell in trial.cells
-        out.write((tcell.onset - id.cells[0].onset).to_s + "," + (tcell.offset - id.cells[0].onset).to_s + "," + tcell.pos)
-        out.write("\n")
+    for scell in sync.cells
+        if scell.time == "4"
+            for pcell in pos_sync.cells
+                if pcell.onset >= scell.onset and pcell.offset <= scell.offset
+                    out.write(pcell.onset.to_s + "," + pcell.offset.to_s + "," + pcell.position_pos + "," + pcell.position_parent_pos)
+                    out.write("\n")
+                end
+            end
+        end
     end
-    # out.write((id.cells[1].onset - id.cells[0].onset).to_s + "," + (id.cells[1].offset - id.cells[0].onset).to_s + ",activity\n")
-    # out.write((id.cells[2].onset - id.cells[0].onset).to_s + "," + (id.cells[2].offset - id.cells[0].onset).to_s + ",sync\n")
-    # out.write((id.cells[3].onset - id.cells[0].onset).to_s + "," + (id.cells[3].offset - id.cells[0].onset).to_s + ",freeplay")
 end
