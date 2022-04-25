@@ -5,8 +5,8 @@ library(tidyverse)
 library(glue)
 i_am(".here")
 
-id <- 103
-session <- 1
+id <- 107
+session <- 2
 who <- "infant"
 
 setwd(here("data",id,session,"lena"))
