@@ -69,5 +69,5 @@ collect_predictions(posture_fit_rs)
 
 end_time <- Sys.time()
 elapsed <- end_time - start_time
-save(list("elapsed", "metrics"), file = "classification_tidymodels_output.RData")
+save("elapsed", file = "classification_tidymodels_output.RData")
 
