@@ -5,6 +5,8 @@ library(tidymodels)
 library(doMC)
 tidymodels_prefer()
 
+start_time <- Sys.time()
+
 #Set cores for parallel processing
 registerDoMC(cores = 8)
 
@@ -62,5 +64,10 @@ posture_fit_rs <-
   fit_resamples(split_by_id, metrics = multi_metric, 
                 control = control_resamples(save_pred = T, parallel_over = "everything", verbose = T))
 
-collect_metrics(posture_fit_rs, summarize = F) %>% filter(.metric == "bal_accuracy")
+metrics <- collect_metrics(posture_fit_rs, summarize = F) %>% filter(.metric == "bal_accuracy")
 collect_predictions(posture_fit_rs)
+
+end_time <- Sys.time()
+elapsed <- end_time - start_time
+save("elapsed", file = "classification_tidymodels_output.RData")
+
