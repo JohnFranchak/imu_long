@@ -11,15 +11,15 @@ library(glue)
 i_am(".here")
 source(here("code","step1-synchronization","motion_features.R"))
 
-id <- 104
-session <- 1
+id <- 107
+session <- 2
 who <- "infant"
 
 # sync_info <- read_csv(here("data","sync_info.csv"))
 # start_time <- sync_info %>% filter(id == .env[["id"]], session == .env[["session"]]) %>% pull(start_time)
 
-start_time <- "2022-01-03 09:30:00"
-end_time <- "2022-01-03 17:00:00"
+start_time <- "2022-04-09 10:38:00"
+end_time <- "2022-04-09 19:37:00"
 complete <-  TRUE
 
 session_param <- list(id = id, session = session, who = who, start_time = start_time, end_time = end_time, complete = complete)
@@ -93,7 +93,8 @@ ds  <- ds %>% mutate(across(-time, ~ts_impute_vec(.x)))
 # This annotation file contains the detected sync point time from the time series
 anno <- read_csv(here("data",id,session, "coding", "biostamp_annotations.csv")) %>% 
   rename_with(~ janitor::make_clean_names(.x)) %>% 
-  mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles"))) #- hours(1)
+  # mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles"))) 
+  mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)) - hours(1), tz = "America/Los_Angeles")))  #For 102-3, 107-2
 
 sync_point <- anno %>% filter(value == "sync") %>% pull(start_timestamp_ms)
 
