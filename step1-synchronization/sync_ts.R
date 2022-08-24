@@ -93,8 +93,8 @@ ds  <- ds %>% mutate(across(-time, ~ts_impute_vec(.x)))
 # This annotation file contains the detected sync point time from the time series
 anno <- read_csv(here("data",id,session, "coding", "biostamp_annotations.csv")) %>% 
   rename_with(~ janitor::make_clean_names(.x)) %>% 
-  # mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles"))) 
-  mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)) - hours(1), tz = "America/Los_Angeles")))  #For 102-3, 107-2
+  mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles")))
+  # mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)) - hours(1), tz = "America/Los_Angeles")))  #For 102-3
 
 sync_point <- anno %>% filter(value == "sync") %>% pull(start_timestamp_ms)
 
@@ -138,6 +138,8 @@ end_time_coded <- activity %>% slice_tail %>% pull(offset)
 # sliding 4 second windows every 1 second
 
 #CHANGE COMPLETE TO TRUE TO GET ALL FEATURES
+# FOR TESTING INDIVIDUAL WINDOWS
+# ds_t <- ds %>% filter_by_time(time, "2022-04-09 17:47:33", "2022-04-09 17:47:36") # to get a single window
 
 slide <- slide_period_dfr(ds, 
                           .i = ds$time, 
@@ -153,15 +155,19 @@ slide$video_period <- 0
 slide[between_time(slide$time, start_time_coded, end_time_coded),]$video_period <- 1
 
 slide$nap_period <- 0
-nap <- anno %>% filter(value == "nap")
-for (i in 1:nrow(nap)) {
-  slide[between_time(slide$time, nap$start_timestamp_ms[i], nap$stop_timestamp_ms[i]),]$nap_period <- 1
-} 
+if ("nap" %in% unique(anno$value)) {
+  nap <- anno %>% filter(value == "nap")
+  for (i in 1:nrow(nap)) {
+    slide[between_time(slide$time, nap$start_timestamp_ms[i], nap$stop_timestamp_ms[i]),]$nap_period <- 1
+  } 
+}
 
 slide$exclude_period <- 0
-excl <- anno %>% filter(value == "exclude")
-for (i in 1:nrow(excl)) {
-  slide[between_time(slide$time, excl$start_timestamp_ms[i], excl$stop_timestamp_ms[i]),]$exclude_period <- 1
+if ("exclude" %in% unique(anno$value)) {
+  excl <- anno %>% filter(value == "exclude")
+  for (i in 1:nrow(excl)) {
+    slide[between_time(slide$time, excl$start_timestamp_ms[i], excl$stop_timestamp_ms[i]),]$exclude_period <- 1
+  }
 }
 
 session_param$start_time_coded <- start_time_coded
