@@ -11,15 +11,15 @@ library(glue)
 i_am(".here")
 source(here("code","step1-synchronization","motion_features.R"))
 
-id <- 107
-session <- 2
+id <- 102
+session <- 4
 who <- "infant"
 
 # sync_info <- read_csv(here("data","sync_info.csv"))
 # start_time <- sync_info %>% filter(id == .env[["id"]], session == .env[["session"]]) %>% pull(start_time)
 
-start_time <- "2022-04-09 10:38:00"
-end_time <- "2022-04-09 19:37:00"
+start_time <- "2021-10-23 10:00:00"
+end_time <- "2021-10-23 20:00:00"
 complete <-  TRUE
 
 session_param <- list(id = id, session = session, who = who, start_time = start_time, end_time = end_time, complete = complete)
@@ -96,6 +96,7 @@ anno <- read_csv(here("data",id,session, "coding", "biostamp_annotations.csv")) 
   mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles")))
   # mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)) - hours(1), tz = "America/Los_Angeles")))  #For 102-3
 
+anno <- anno %>% filter_by_time(start_timestamp_ms, as_datetime(start_time) - hours(4), end_time)
 sync_point <- anno %>% filter(value == "sync") %>% pull(start_timestamp_ms)
 
 # IMPORT CODED ACTIVITY FROM DATAVYU -----
@@ -111,12 +112,12 @@ activity_special <- activity %>% filter(!code %in% valid_codes)
 activity <- activity %>% filter(code %in%valid_codes)
 
 #NEED A BETTER WAY OF GETTING WRIST SYNC POINTS FROM THE DATA
-if (who == "parent") {
-  wrist_video_time <- activity_special %>% filter(code == "wrist") %>% pull(onset) 
-  wrist_sync <- ds %>% filter(wacc_x > 3) %>% slice_head() %>%  pull(time) #NEED TO FIX THIS FOR FUTURE PPTS
-  time_diff <- wrist_sync - wrist_video_time
-  ds$time <- ds$time - time_diff
-}
+# if (who == "parent") {
+#   wrist_video_time <- activity_special %>% filter(code == "wrist") %>% pull(onset) 
+#   wrist_sync <- ds %>% filter(wacc_x > 3) %>% slice_head() %>%  pull(time) #NEED TO FIX THIS FOR FUTURE PPTS
+#   time_diff <- wrist_sync - wrist_video_time
+#   ds$time <- ds$time - time_diff
+# }
 
 # Match activity codes to imu data based on time
 ds$code <- as.character(NA)
