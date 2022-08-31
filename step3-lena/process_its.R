@@ -10,6 +10,8 @@ i_am(".here")
 # id <- 107
 # session <- 2
 
+print(str_glue("Running id {id} session {session}"))
+
 setwd(here("data",id,session,"lena"))
 if (!dir.exists("output")) {
   dir.create("output")
