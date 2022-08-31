@@ -55,3 +55,5 @@ for (ppt in synced_ppts) {
 dashboard_full <- left_join(dashboard, session_data, by = "sessions_dir")
 
 dashboard_full %>% write_csv(here("code","project_status", "project_dashboard.csv"))
+
+system("quarto render")
