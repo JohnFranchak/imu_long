@@ -18,7 +18,7 @@ library(lubridate)
 dashboard <- read_csv("project_status/project_dashboard.csv")
 ```
 
-| Last updated: `r file.info("project_dashboard.csv")$ctime` 
+| Last updated: `r file.info("project_status/project_dashboard.csv")$ctime` 
 | Dataset contains `r length(unique(dashboard$id))` unique participants with `r nrow(dashboard)` overall sessions. 
 
 ```{r}
