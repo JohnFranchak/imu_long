@@ -1,6 +1,8 @@
 ---
 title: "project_dashboard"
-format: html
+format: 
+  html:
+    page-layout: full
 ---
 
 ```{r}
@@ -10,4 +12,25 @@ format: html
 
 library(tidyverse)
 library(reactable)
+library(reactablefmtr)
+library(janitor)
+dashboard <- read_csv("project_dashboard.csv")
+```
+
+```{r}
+#| echo: false
+
+dash_filt <- dashboard %>% select(-sessions_dir) %>% 
+  clean_names(case = "title", abbreviations = c("ID", "IMU", "LENA"))
+  
+reactable(dash_filt, 
+          filterable = TRUE, 
+          searchable = TRUE, 
+          compact = TRUE,
+          defaultSorted = c("ID","Session"), 
+          showPageSizeOptions = TRUE,
+          pageSizeOptions = c(20, 40, 60, 80),
+          paginationType = "jump",
+          defaultPageSize = 20,
+          columnGroups = list(colGroup("Visit", columns = c("ID", "Session"), sticky = "left")))
 ```
