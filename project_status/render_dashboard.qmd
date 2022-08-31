@@ -21,16 +21,29 @@ dashboard <- read_csv("project_dashboard.csv")
 #| echo: false
 
 dash_filt <- dashboard %>% select(-sessions_dir) %>% 
-  clean_names(case = "title", abbreviations = c("ID", "IMU", "LENA"))
+  clean_names(case = "title", abbreviations = c("ID", "IMU", "LENA")) %>% 
+  rename(Paperwork = `Completed Paperwork`)
   
 reactable(dash_filt, 
           filterable = TRUE, 
           searchable = TRUE, 
           compact = TRUE,
+          striped = TRUE,
           defaultSorted = c("ID","Session"), 
           showPageSizeOptions = TRUE,
           pageSizeOptions = c(20, 40, 60, 80),
           paginationType = "jump",
           defaultPageSize = 20,
-          columnGroups = list(colGroup("Visit", columns = c("ID", "Session"), sticky = "left")))
+          columnGroups = list(colGroup("Visit", columns = c("ID", "Session"), sticky = "left")),
+          columns = list(
+            `Paperwork` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"}),
+            `Raw Videos` = colDef(style = function(value) {
+              if (value > 0) {
+                color <- "#008000"
+              } else {
+                  color <- "#e00000"
+                  } 
+              list(color = color)})
+          )
+          )
 ```
