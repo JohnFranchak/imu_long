@@ -1,6 +1,5 @@
 ---
-title: "IMU Long"
-subtitle: "Project Dashboard"
+title: "Project Dashboard"
 format: 
   html:
     page-layout: full
@@ -15,8 +14,12 @@ library(tidyverse)
 library(reactable)
 library(reactablefmtr)
 library(janitor)
+library(lubridate)
 dashboard <- read_csv("project_dashboard.csv")
 ```
+
+| Last updated: `r file.info("project_dashboard.csv")$ctime` 
+| Dataset contains `r length(unique(dashboard$id))` unique participants with `r nrow(dashboard)` overall sessions. 
 
 ```{r}
 #| echo: false

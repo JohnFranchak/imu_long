@@ -1,0 +1,15 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "IMU Long Project Management"
+
+  navbar:
+    background: primary
+    left:
+      - text: "Home"
+        file: index.qmd
+        
+
+
