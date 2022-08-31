@@ -1,5 +1,6 @@
 ---
-title: "project_dashboard"
+title: "IMU Long"
+subtitle: "Project Dashboard"
 format: 
   html:
     page-layout: full
@@ -22,7 +23,8 @@ dashboard <- read_csv("project_dashboard.csv")
 
 dash_filt <- dashboard %>% select(-sessions_dir) %>% 
   clean_names(case = "title", abbreviations = c("ID", "IMU", "LENA")) %>% 
-  rename(Paperwork = `Completed Paperwork`)
+  rename(Paperwork = `Completed Paperwork`, Biostamp = `Biostamp Annotations`, `LENA ITS` = `LENA Downloaded`) %>% 
+  mutate(Date = `Start Time`)
   
 reactable(dash_filt, 
           filterable = TRUE, 
@@ -33,17 +35,26 @@ reactable(dash_filt,
           showPageSizeOptions = TRUE,
           pageSizeOptions = c(20, 40, 60, 80),
           paginationType = "jump",
-          defaultPageSize = 20,
-          columnGroups = list(colGroup("Visit", columns = c("ID", "Session"), sticky = "left")),
+          defaultPageSize = 40,
+          defaultColDef = colDef(format = colFormat(percent = TRUE, digits = 1)),
+          columnGroups = list(colGroup("Visit", columns = c("ID", "Session", "Date"), sticky = "left"),
+                              colGroup("Model Performance", columns = c("Balanced Accuracy", "Overall Accuracy"))),
           columns = list(
-            `Paperwork` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"}),
-            `Raw Videos` = colDef(style = function(value) {
-              if (value > 0) {
-                color <- "#008000"
-              } else {
-                  color <- "#e00000"
-                  } 
-              list(color = color)})
+            ID = colDef(format = colFormat(digits = 0), maxWidth = 50, align = "left"),
+            Session = colDef(format = colFormat(digits = 0), maxWidth = 100, align = "left"),
+            Date = colDef(format = colFormat(date = TRUE), minWidth = 130),
+            `Start Time` = colDef(format = colFormat(time = TRUE), minWidth = 130),
+            `End Time` = colDef(format = colFormat(time = TRUE), minWidth = 130),
+            `Paperwork` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"}, minWidth = 110),
+            `Raw Videos` = colDef(style = function(value) {if (value > 0) list(color = "#008000") else list(color = "#e00000", fontWeight = "bold")}, format = colFormat(digits = 0)),
+            `Converted Videos` = colDef(style = function(value) {if (value > 0) list(color = "#008000") else list(color = "#e00000", fontWeight = "bold")}, format = colFormat(digits = 0)),
+            `IMU Files` = colDef(style = function(value) {if (value > 0) list(color = "#008000") else list(color = "#e00000", fontWeight = "bold")}, format = colFormat(digits = 0)),
+            `Datavyu Files` = colDef(style = function(value) {if (value > 0) list(color = "#008000") else list(color = "#e00000", fontWeight = "bold")}, format = colFormat(digits = 0)),
+            `Activity Exported` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"}),
+            `Biostamp` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"}),
+            `Infant Synced` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"}),
+            `LENA ITS` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"}),
+            `LENA Synced` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"})
           )
           )
 ```
