@@ -1,6 +1,5 @@
 library(tidyverse)
 library(here)
-library(glue)
 i_am(".here")
 
 ids <- list.dirs(here("data"), recursive = F) %>% discard(str_detect(., pattern = "_template"))
@@ -25,6 +24,19 @@ dashboard <- tibble(sessions_dir, completed_paperwork, raw_videos, converted_vid
 
 synced_ppts <- dashboard %>% filter(infant_synced == 1) %>% 
   transmute(sync_path = str_glue("{sessions_dir}/synced_data/mot_features_infant.RData")) %>% unlist
+
+load(synced_ppts[1])
+session_data <- tibble(id = session_param$id, session = session_param$session, start_time = session_param$start_time, end_time = session_param$end_time) %>% filter(FALSE)
+for (ppt in synced_ppts) {
+  rm(session_param)
+  load(ppt)
+  session_data <- bind_rows(session_data, tibble(id = session_param$id, session = session_param$session, start_time = session_param$start_time, end_time = session_param$end_time))
+}
+
+dashboard <- left_join(dashboard, session_data)
+
+synced_ppts <- dashboard %>% filter(infant_synced == 1) %>% 
+  transmute(sync_path = str_glue("{sessions_dir}/synced_data/model_performance_infant.RData")) %>% unlist
 
 load(synced_ppts[1])
 session_data <- tibble(id = session_param$id, session = session_param$session, start_time = session_param$start_time, end_time = session_param$end_time) %>% filter(FALSE)

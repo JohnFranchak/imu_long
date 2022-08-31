@@ -1,22 +1,26 @@
-library(timetk)
-library(lubridate)
-library(here)
-library(janitor)
-library(slider)
-library(psych)
-library(corrr)
-library(randomForest)
-library(cvms)
-library(caret)
-library(tidyverse)
-library(glue)
+run_classification_split <- function(id, session, who = "infant") {
+
+require(timetk)
+require(lubridate)
+require(here)
+require(janitor)
+require(slider)
+require(psych)
+require(corrr)
+require(randomForest)
+require(cvms)
+require(caret)
+require(tidyverse)
+require(glue)
 i_am(".here")
 
 #LOAD DATA
-id <- 112
-session <- 2
-who <- "infant"
-load(here("data",id,session, "synced_data", glue("mot_features_{who}.RData")))
+# id <- 112
+# session <- 2
+# who <- "infant"
+load(here("data",id,session, "synced_data", str_glue("mot_features_{who}.RData")))
+
+print(str_glue("Running id {id} session {session}"))
 
 slide_filt <- slide %>% filter(video_period == 1) %>% select(-video_period, -nap_period)
 #CODE FACTORS
@@ -47,12 +51,17 @@ res <- confusion_matrix(factor(testing$code, u),factor(predictions, u))
 res$`Balanced Accuracy`
 res$`Table`
 
+save(res, file =  here("data",id,session, "synced_data", glue("model_performance_{who}.RData")))
+
 #FULL DAY ---- 
-#Have to add exclude period for ones that don't have it
+if (is.null(slide$exclude_period)) slide$exclude_period <- 0
 predictions_full <- slide %>% 
   select(time, nap_period, video_period, exclude_period) %>% 
   bind_cols(tibble(pos = predict(rfmodel, slide, type = "class"))) %>% 
   filter(exclude_period == 0) 
+
 predictions_full %>% filter(nap_period == 0) %>% pull(pos) %>% fct_count(prop = T)
 
 write_csv(predictions_full, here("data",id,session, "synced_data", glue("position_predictions_{who}.csv")))
+
+}
