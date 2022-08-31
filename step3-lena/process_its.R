@@ -1,15 +1,19 @@
+process_its <- function(id, session) {
+
 #devtools::install_github("htanderson/ITSbin", dependencies = TRUE)
-library(here)
-library(ITSbin)
-library(tidyverse)
-library(glue)
+require(here)
+require(ITSbin)
+require(tidyverse)
+require(glue)
 i_am(".here")
 
-id <- 107
-session <- 2
-who <- "infant"
+# id <- 107
+# session <- 2
 
 setwd(here("data",id,session,"lena"))
+if (!dir.exists("output")) {
+  dir.create("output")
+}
 
 check_multiday(
   ITS.dir = "its",
@@ -29,3 +33,5 @@ bin_seconds(
   align.rows = "midnight")
 
 i_am(".here")
+
+}

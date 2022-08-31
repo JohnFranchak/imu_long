@@ -11,12 +11,13 @@ imu_files <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/imu"), rec
 datavyu_files <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/coding"), ".opf")))
 activity_exported <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/coding"), "activity.csv")))
 biostamp_annotations <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/coding"), "biostamp_annotations")))
-lena_downloaded <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/lena/its"), ".its")))
+lena_downloaded <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/lena/its"), "lena.its")))
+lena_processed <-  map_int(sessions_dir, ~ length(list.dirs(str_glue("{.x}/lena/output/bin"))))
 infant_synced <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "mot_features_infant.RData")))
 lena_synced <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "lena_imu_infant.csv")))
 
 dashboard <- tibble(sessions_dir, completed_paperwork, raw_videos, converted_videos, imu_files, datavyu_files, activity_exported, 
-                    biostamp_annotations, infant_synced, lena_downloaded, lena_synced) %>% 
+                    biostamp_annotations, infant_synced, lena_downloaded, lena_processed, lena_synced) %>% 
   separate(sessions_dir, into = c(NA, NA, NA, "id", "session"), sep = "/", remove = FALSE) %>%
   mutate(across(id:session, as.numeric)) %>% 
   arrange(id, session) %>% 

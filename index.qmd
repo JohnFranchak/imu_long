@@ -57,6 +57,7 @@ reactable(dash_filt,
             `Biostamp` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"}),
             `Infant Synced` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"}),
             `LENA ITS` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"}),
+            `LENA Processed` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"}),
             `LENA Synced` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"})
           )
           )
