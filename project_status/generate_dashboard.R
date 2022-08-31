@@ -29,6 +29,7 @@ load(synced_ppts[1])
 session_data <- tibble(id = session_param$id, session = session_param$session, start_time = session_param$start_time, end_time = session_param$end_time) %>% filter(FALSE)
 for (ppt in synced_ppts) {
   rm(session_param)
+  print(ppt)
   load(ppt)
   session_data <- bind_rows(session_data, tibble(id = session_param$id, session = session_param$session, start_time = session_param$start_time, end_time = session_param$end_time))
 }
@@ -38,14 +39,18 @@ dashboard <- left_join(dashboard, session_data)
 synced_ppts <- dashboard %>% filter(infant_synced == 1) %>% 
   transmute(sync_path = str_glue("{sessions_dir}/synced_data/model_performance_infant.RData")) %>% unlist
 
-load(synced_ppts[1])
-session_data <- tibble(id = session_param$id, session = session_param$session, start_time = session_param$start_time, end_time = session_param$end_time) %>% filter(FALSE)
+session_data <- tibble(sessions_dir = "NA", overall_accuracy = 1, balanced_accuracy = 1, held_accuracy = 1,
+                       prone_accuracy = 1, sitting_accuracy = 1, supine_accuracy = 1, upright_accuracy = 1) %>% filter(FALSE)
 for (ppt in synced_ppts) {
-  rm(session_param)
+  rm(res)
+  print(ppt)
   load(ppt)
-  session_data <- bind_rows(session_data, tibble(id = session_param$id, session = session_param$session, start_time = session_param$start_time, end_time = session_param$end_time))
+  temp_acc <- res$`Class Level Results`[[1]]$`Balanced Accuracy` %>% set_names(res$`Class Level Results`[[1]]$`Class`)
+  session_data <- bind_rows(session_data, tibble(sessions_dir = ppt, overall_accuracy = res$`Overall Accuracy`, balanced_accuracy = res$`Balanced Accuracy`, 
+                                                 held_accuracy = temp_acc[["Held"]], prone_accuracy = temp_acc[["Prone"]], sitting_accuracy = temp_acc[["Sitting"]], 
+                                                 supine_accuracy = temp_acc[["Supine"]], upright_accuracy = temp_acc[["Upright"]]))
 }
 
-dashboard <- left_join(dashboard, session_data)
+dashboard_full <- left_join(dashboard, session_data)
 
-dashboard %>% write_csv(here("data", "project_dashboard.csv"))
+dashboard_full %>% write_csv(here("data", "project_dashboard.csv"))
