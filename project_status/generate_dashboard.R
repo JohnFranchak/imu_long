@@ -46,11 +46,11 @@ for (ppt in synced_ppts) {
   print(ppt)
   load(ppt)
   temp_acc <- res$`Class Level Results`[[1]]$`Balanced Accuracy` %>% set_names(res$`Class Level Results`[[1]]$`Class`)
-  session_data <- bind_rows(session_data, tibble(sessions_dir = ppt, overall_accuracy = res$`Overall Accuracy`, balanced_accuracy = res$`Balanced Accuracy`, 
+  session_data <- bind_rows(session_data, tibble(sessions_dir = str_remove(ppt,"/synced_data/model_performance_infant.RData"), overall_accuracy = res$`Overall Accuracy`, balanced_accuracy = res$`Balanced Accuracy`, 
                                                  held_accuracy = temp_acc[["Held"]], prone_accuracy = temp_acc[["Prone"]], sitting_accuracy = temp_acc[["Sitting"]], 
                                                  supine_accuracy = temp_acc[["Supine"]], upright_accuracy = temp_acc[["Upright"]]))
 }
 
-dashboard_full <- left_join(dashboard, session_data)
+dashboard_full <- left_join(dashboard, session_data, by = "sessions_dir")
 
-dashboard_full %>% write_csv(here("data", "project_dashboard.csv"))
+dashboard_full %>% write_csv(here("code","project_status", "project_dashboard.csv"))
