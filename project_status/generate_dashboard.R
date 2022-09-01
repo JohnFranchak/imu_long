@@ -1,4 +1,7 @@
+# devtools::install_github("JohnFranchak/tidyvyur")
+
 library(tidyverse)
+library(tidyvyur)
 library(here)
 i_am(".here")
 
@@ -16,7 +19,21 @@ lena_processed <-  map_int(sessions_dir, ~ length(list.dirs(str_glue("{.x}/lena/
 infant_synced <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "mot_features_infant.RData")))
 lena_synced <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "lena_imu_infant.csv")))
 
-dashboard <- tibble(sessions_dir, completed_paperwork, raw_videos, converted_videos, imu_files, datavyu_files, activity_exported, 
+#check coding
+opf_files <- map(sessions_dir, ~ list.files(str_glue("{.x}/coding"), "*pt1.opf", full.names = T)) %>% set_names(sessions_dir)
+
+position_primary <- lena_downloaded * 0 
+position_rel <- activity_primary
+for (i in 1:length(opf_files)) {
+  if (str_detect(opf_files[i], ".opf")) {
+    tmp_opf <- read_opf(opf_files[[i]])
+    position_primary[i] <- ifelse(is.null(nrow(tmp_opf[['position']])), 0, nrow(tmp_opf[['position']]))
+    position_rel[i] <- ifelse(is.null(nrow(tmp_opf[['position_rel']])), 0, nrow(tmp_opf[['position_rel']]))
+  }
+}
+
+
+dashboard <- tibble(sessions_dir, completed_paperwork, raw_videos, converted_videos, imu_files, datavyu_files, position_primary, position_rel, activity_exported, 
                     biostamp_annotations, infant_synced, lena_downloaded, lena_processed, lena_synced) %>% 
   separate(sessions_dir, into = c(NA, NA, NA, "id", "session"), sep = "/", remove = FALSE) %>%
   mutate(across(id:session, as.numeric)) %>% 
