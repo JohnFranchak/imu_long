@@ -23,7 +23,7 @@ lena_synced <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_d
 opf_files <- map(sessions_dir, ~ list.files(str_glue("{.x}/coding"), "*pt1.opf", full.names = T)) %>% set_names(sessions_dir)
 
 position_primary <- lena_downloaded * 0 
-position_rel <- activity_primary
+position_rel <- position_primary
 for (i in 1:length(opf_files)) {
   if (str_detect(opf_files[i], ".opf")) {
     tmp_opf <- read_opf(opf_files[[i]])
