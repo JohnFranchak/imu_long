@@ -11,15 +11,15 @@ library(glue)
 i_am(".here")
 source(here("code","step1-synchronization","motion_features.R"))
 
-id <- 112
-session <- 2
+id <- 107
+session <- 3
 who <- "infant"
 
 # sync_info <- read_csv(here("data","sync_info.csv"))
 # start_time <- sync_info %>% filter(id == .env[["id"]], session == .env[["session"]]) %>% pull(start_time)
 
-start_time <- "2022-06-16 10:17:00"
-end_time <- "2022-06-16 22:15:00"
+start_time <- "2022-05-06 10:49:00"
+end_time <- "2022-05-06 19:02:00"
 complete <-  TRUE
 
 session_param <- list(id = id, session = session, who = who, start_time = start_time, end_time = end_time, complete = complete)

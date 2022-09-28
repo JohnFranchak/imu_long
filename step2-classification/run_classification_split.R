@@ -48,8 +48,8 @@ predictions <- predict(rfmodel, testing, type = "class")
 
 u <- union(predictions, testing$code)
 res <- confusion_matrix(factor(testing$code, u),factor(predictions, u))
-res$`Balanced Accuracy`
-res$`Table`
+print(res$`Balanced Accuracy`)
+print(res$`Table`)
 
 save(res, file =  here("data",id,session, "synced_data", glue("model_performance_{who}.RData")))
 
