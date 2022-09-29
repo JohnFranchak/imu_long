@@ -43,19 +43,20 @@ dashboard <- tibble(sessions_dir, completed_paperwork, raw_videos, converted_vid
 synced_ppts <- dashboard %>% filter(infant_synced == 1) %>% 
   transmute(sync_path = str_glue("{sessions_dir}/synced_data/mot_features_infant.RData")) %>% unlist
 
-last_updated <- file.info(here("code","project_status", "project_dashboard.csv"))$mtime
-old_dashboard <- read_csv(here("code","project_status", "project_dashboard.csv"))
-
+# Get dates and times from ppt_info
 ppt_info <- read_csv(here("data", "ppt_info.csv"))
 session_data <- ppt_info %>% select(id, session, date, start_time, end_time) %>% drop_na
-
 dashboard <- left_join(dashboard, session_data)
 
-synced_ppts <- dashboard %>% filter(infant_synced == 1) %>% 
-  transmute(sync_path = str_glue("{sessions_dir}/synced_data/model_performance_infant.RData")) %>% unlist
+# Get model performance
+last_updated <- file.info(here("code","project_status", "project_dashboard.csv"))$mtime
+old_dashboard <- read_csv(here("code","project_status", "project_dashboard.csv")) %>% select(sessions_dir, overall_accuracy:upright_accuracy)
 
-session_data <- tibble(sessions_dir = "NA", overall_accuracy = 1, balanced_accuracy = 1, held_accuracy = 1,
-                       prone_accuracy = 1, sitting_accuracy = 1, supine_accuracy = 1, upright_accuracy = 1) %>% filter(FALSE)
+synced_ppts <- dashboard %>% filter(infant_synced == 1) %>% 
+  transmute(sync_path = str_glue("{sessions_dir}/synced_data/model_performance_infant.RData")) %>% unlist %>% 
+  keep(~ file.info(.x)$mtime > last_updated)
+
+session_data <- old_dashboard %>% filter(FALSE)
 for (ppt in synced_ppts) {
   rm(res)
   print(ppt)
@@ -65,8 +66,10 @@ for (ppt in synced_ppts) {
                                                  held_accuracy = temp_acc[["Held"]], prone_accuracy = temp_acc[["Prone"]], sitting_accuracy = temp_acc[["Sitting"]], 
                                                  supine_accuracy = temp_acc[["Supine"]], upright_accuracy = temp_acc[["Upright"]]))
 }
+old_dashboard <- old_dashboard %>% filter(!(sessions_dir %in% str_remove(synced_ppts,"/synced_data/model_performance_infant.RData")))
+old_dashboard <- old_dashboard %>% bind_rows(session_data)
 
-dashboard_full <- left_join(dashboard, session_data, by = "sessions_dir")
+dashboard_full <- left_join(dashboard, old_dashboard, by = "sessions_dir")
 
 dashboard_full %>% write_csv(here("code","project_status", "project_dashboard.csv"))
 
