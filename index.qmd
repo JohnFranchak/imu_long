@@ -26,8 +26,7 @@ dashboard <- read_csv("project_status/project_dashboard.csv")
 
 dash_filt <- dashboard %>% select(-sessions_dir) %>% 
   clean_names(case = "title", abbreviations = c("ID", "IMU", "LENA")) %>% 
-  rename(Paperwork = `Completed Paperwork`, Biostamp = `Biostamp Annotations`, `LENA ITS` = `LENA Downloaded`) %>% 
-  mutate(Date = `Start Time`)
+  rename(Paperwork = `Completed Paperwork`, Biostamp = `Biostamp Annotations`, `LENA ITS` = `LENA Downloaded`, Age = Agemo)
   
 reactable(dash_filt, 
           filterable = TRUE, 
@@ -40,14 +39,15 @@ reactable(dash_filt,
           paginationType = "jump",
           defaultPageSize = 40,
           defaultColDef = colDef(format = colFormat(percent = TRUE, digits = 1)),
-          columnGroups = list(colGroup("Visit", columns = c("ID", "Session", "Date"), sticky = "left"),
+          columnGroups = list(colGroup("Visit", columns = c("ID", "Session", "Age"), sticky = "left"),
                               colGroup("Model Performance", columns = c("Balanced Accuracy", "Overall Accuracy"))),
           columns = list(
             ID = colDef(format = colFormat(digits = 0), maxWidth = 50, align = "left"),
             Session = colDef(format = colFormat(digits = 0), maxWidth = 100, align = "left"),
+            Age = colDef(format = colFormat(digits = 1), minWidth = 70),
             Date = colDef(format = colFormat(date = TRUE), minWidth = 130),
-            `Start Time` = colDef(format = colFormat(time = TRUE), minWidth = 130),
-            `End Time` = colDef(format = colFormat(time = TRUE), minWidth = 130),
+            `Start Time` = colDef(minWidth = 130),
+            `End Time` = colDef( minWidth = 130),
             `Paperwork` = colDef(cell = function(value) {if (value > 0) "\u2714\ufe0f" else "\u274c"}, minWidth = 110),
             `Raw Videos` = colDef(style = function(value) {if (value > 0) list(color = "#008000") else list(color = "#e00000", fontWeight = "bold")}, format = colFormat(digits = 0)),
             `Converted Videos` = colDef(style = function(value) {if (value > 0) list(color = "#008000") else list(color = "#e00000", fontWeight = "bold")}, format = colFormat(digits = 0)),
