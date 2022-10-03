@@ -46,7 +46,7 @@ synced_ppts <- dashboard %>% filter(infant_synced == 1) %>%
 
 # Get dates and times from ppt_info
 ppt_info <- read_csv(here("data", "ppt_info.csv"))
-ppt_info  <- ppt_info %>%  mutate(agemo = as.numeric((mdy(date)-mdy(infant_dob))/(365.25/12))) %>% select(agemo)
+ppt_info  <- ppt_info %>%  mutate(agemo = as.numeric((mdy(date)-mdy(infant_dob))/(365.25/12))) 
 
 session_data <- ppt_info %>% select(id, session, agemo, date, start_time, end_time) %>% drop_na
 dashboard <- left_join(dashboard, session_data)
