@@ -74,7 +74,8 @@ ds_long %>% filter(age >= 8) %>%
 ggsave(here("analysis-lena-imu", "figures", "posture-timeline-older.png"))
 
 
-ds_long %>% filter(age >= 8) %>% group_by(position) %>% get_summary_stats()
+ds_long %>% filter(age >= 8) %>% group_by(position) %>% get_summary_stats(prop)
+ds_long %>% filter(age <= 8) %>% group_by(position) %>% get_summary_stats(prop)
 
 
 #Dominant body position? 
