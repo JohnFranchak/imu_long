@@ -19,7 +19,7 @@ who <- "infant"
 start_time <- "2022-09-01 01:15:00"
 end_time <- "2022-09-01 21:15:00"
 
-ppt_list <- read_csv(here("code","project_status","project_dashboard.csv")) %>% 
+ppt_list <- read_csv(here("data","ppt_info.csv")) %>% 
   filter(id == .env[["id"]], session == .env[["session"]])
 start_time <- paste(mdy(ppt_list$date), ppt_list$start_time)
 end_time <- paste(mdy(ppt_list$date), ppt_list$end_time)
