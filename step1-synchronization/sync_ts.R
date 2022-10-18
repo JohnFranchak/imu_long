@@ -7,19 +7,23 @@ library(randomForest)
 library(cvms)
 library(caret)
 library(tidyverse)
+library(lubridate)
 library(glue)
 i_am(".here")
 source(here("code","step1-synchronization","motion_features.R"))
 
-id <- 107
-session <- 3
+id <- 110
+session <- 4
 who <- "infant"
 
-# sync_info <- read_csv(here("data","sync_info.csv"))
-# start_time <- sync_info %>% filter(id == .env[["id"]], session == .env[["session"]]) %>% pull(start_time)
+# start_time <- "2022-05-06 10:49:00"
+# end_time <- "2022-05-06 19:02:00"
 
-start_time <- "2022-05-06 10:49:00"
-end_time <- "2022-05-06 19:02:00"
+ppt_list <- read_csv(here("code","project_status","project_dashboard.csv")) %>% 
+  filter(id == .env[["id"]], session == .env[["session"]])
+start_time <- paste(mdy(ppt_list$date), ppt_list$start_time)
+end_time <- paste(mdy(ppt_list$date), ppt_list$end_time)
+
 complete <-  TRUE
 
 session_param <- list(id = id, session = session, who = who, start_time = start_time, end_time = end_time, complete = complete)
