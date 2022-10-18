@@ -90,13 +90,18 @@ ds_long %>%
 
 lmPerm::lmp(dominant ~ age_group, data = dominance) %>% summary
 
+dominance %>% group_by(age_group) %>% get_summary_stats(dominant)
 
-  
-ggplot(dominance, aes(y = dominant, x = age_group, fill = age_group)) + 
-  geom_boxplot() + geom_jitter()
+theme_update(text = element_text(size = 20),
+             axis.text.x = element_text(size = 20), axis.title.x = element_text(size = 24),
+             axis.text.y = element_text(size = 20), axis.title.y = element_text(size = 24)) 
+ggplot(dominance, aes(y = dominant, x = age_group)) + 
+  geom_boxplot() + xlab("") + ylim(0,1) + 
+  ylab("Proportion of Dominant Position")
+ggsave(here("analysis-lena-imu", "figures", "dominance.png"))
 
 ggplot(dominance, aes(x = dominant, color = age_group)) + 
-  geom_density()
+  geom_density() 
 
 ggplot(dominance, aes(x = dominant)) + 
   geom_histogram(position = "dodge") + 
