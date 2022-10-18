@@ -36,6 +36,11 @@ ggplot(ds, aes(x = sit_time, y = adult_word_cnt)) +
   geom_point() + 
   facet_wrap("id_uni")
 
+ds %>% filter(age > 8) %>% lena_pos_corrs()
+ds %>% filter(age > 8) %>% 
+  ggplot(aes(x = held_time, y = adult_word_cnt, color = id_uni)) + 
+  geom_point() 
+
 ds_long <- ds %>% pivot_longer(cols = sit_time:upright_time, names_to = "position", values_to = "prop") %>% 
   mutate(Position = factor(position,
                            levels = c("upright_time", "sit_time", "prone_time", "supine_time", "held_time"),
