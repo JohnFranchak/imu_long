@@ -16,8 +16,8 @@ id <- 110
 session <- 4
 who <- "infant"
 
-# start_time <- "2022-05-06 10:49:00"
-# end_time <- "2022-05-06 19:02:00"
+start_time <- "2022-09-01 01:15:00"
+end_time <- "2022-09-01 21:15:00"
 
 ppt_list <- read_csv(here("code","project_status","project_dashboard.csv")) %>% 
   filter(id == .env[["id"]], session == .env[["session"]])
@@ -129,7 +129,10 @@ for (i in 1:nrow(activity)) {
   ds[between_time(ds$time, activity$onset[i], activity$offset[i]),]$code <- activity$code[i]
 } 
 
-ds_coded <-ds %>% filter_by_time(time, start_time, end_time)
+start_filt <- force_tz(as_datetime(start_time), "America/Los_Angeles")
+end_filt <- force_tz(as_datetime(end_time), "America/Los_Angeles")
+
+ds_coded <-ds %>% filter_by_time(time, .start_date = start_filt, .end_date = end_filt)
 
 #Identify start and end times of coded period
 
