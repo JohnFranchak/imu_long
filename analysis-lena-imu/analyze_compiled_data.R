@@ -6,7 +6,6 @@ library(patchwork)
 library(janitor)
 library(rstatix)
 library(scales)
-library(NatParksPalettes)
 theme_update(text = element_text(size = 14),
              axis.text.x = element_text(size = 14, color = "black"), axis.title.x = element_text(size = 16),
              axis.text.y = element_text(size = 14,  color = "black"), axis.title.y = element_text(size = 16), 
@@ -37,25 +36,46 @@ ggplot(ds, aes(x = sit_time, y = adult_word_cnt)) +
   geom_point() + 
   facet_wrap("id_uni")
 
-ds_long <- ds %>% pivot_longer(cols = sit_time:upright_time, names_to = "position", values_to = "prop") 
+ds_long <- ds %>% pivot_longer(cols = sit_time:upright_time, names_to = "position", values_to = "prop") %>% 
+  mutate(Position = factor(position,
+                           levels = c("upright_time", "sit_time", "prone_time", "supine_time", "held_time"),
+                           labels = c("Upright", "Sitting", "Prone", "Supine", "Held"))) %>% 
+  arrange(Position, age)
 
-pal <- natparks.pals("DeathValley", n = 8)[c(1,3,4,5,8)] %>% set_names(unique(ds_long$position))
+pal <-  c("#F0E442","#009E73","#56B4E9", "#E69F00",  "#0072B2") %>%  set_names(unique(ds_long$Position))
 
 ds_long %>% filter(age < 8) %>% 
-ggplot(aes(x = clock_time_start_2, y = prop, fill = position)) + 
+ggplot(aes(x = clock_time_start_2, y = prop, fill = Position)) + 
   geom_bar(stat = "identity") + 
   facet_wrap("id_uni", ncol = 1) + 
   scale_fill_manual(values = pal) + 
   scale_x_time(breaks = breaks_width("2 hour"), name = "") + 
-  scale_y_continuous(breaks = c(0, .5, 1)) + 
-  theme(legend.position = "top", strip.text.x = element_blank())
+  theme(legend.position = "bottom", 
+        strip.text = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank()) + 
+  ylab("Individual Infants") + 
+  ggtitle("4-7 months")
+ggsave(here("analysis-lena-imu", "figures", "posture-timeline-younger.png"))
 
 
 ds_long %>% filter(age >= 8) %>% 
-  ggplot(aes(x = clock_time_start_2, y = prop, fill = position)) + 
+  ggplot(aes(x = clock_time_start_2, y = prop, fill = Position)) + 
   geom_bar(stat = "identity") + 
-  facet_wrap("id_uni") + 
-  scale_x_time(breaks = breaks_width("4 hour"))
+  facet_wrap("id_uni", ncol = 1) + 
+  scale_fill_manual(values = pal) + 
+  scale_x_time(breaks = breaks_width("2 hour"), name = "") + 
+  theme(legend.position = "bottom", 
+        strip.text = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank()) + 
+  ylab("Individual Infants") + 
+  ggtitle("11-14 months")
+ggsave(here("analysis-lena-imu", "figures", "posture-timeline-older.png"))
+
+
+ds_long %>% filter(age >= 8) %>% group_by(position) %>% get_summary_stats()
+
 
 #Dominant body position? 
 
