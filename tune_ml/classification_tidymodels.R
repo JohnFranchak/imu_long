@@ -8,13 +8,13 @@ tidymodels_prefer()
 start_time <- Sys.time()
 
 #Set cores for parallel processing
-registerDoMC(cores = 8)
+registerDoMC(cores = 12)
 
 # Custom set of multi-class metrics
 multi_metric <- metric_set(accuracy, kap, bal_accuracy, sens, spec)
 
 #LOAD DATA
-load(here("tune_ml","compiled_data.RData"))
+load(here("tune_ml","compiled_data_lite.RData"))
 
 #Split data into train/test, ensuring all ids appear in both
 data_split <- initial_split(slide_filt, prop = 3/4, strata = "id")
@@ -69,5 +69,5 @@ collect_predictions(posture_fit_rs)
 
 end_time <- Sys.time()
 elapsed <- end_time - start_time
-save("elapsed", file = "classification_tidymodels_output.RData")
+save(elapsed, posture_fit_rs, metrics, file = "classification_tidymodels_output.RData")
 
