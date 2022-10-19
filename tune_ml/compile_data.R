@@ -40,3 +40,5 @@ slide_filt <- slide_filt %>% select_if(not_all_na)
 
 save(slide_all, slide_filt, session, file = "tune_ml/compiled_data.RData")
 
+save(slide_filt, session, file = "tune_ml/compiled_data_lite.RData")
+

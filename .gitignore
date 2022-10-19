@@ -56,3 +56,4 @@ imu_timeseries_exploration/
 tune_ml/compiled_data.RData
 
 /.quarto/
+tune_ml/compiled_data_lite.RData
