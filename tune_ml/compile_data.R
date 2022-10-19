@@ -7,11 +7,9 @@ i_am(".here")
 ids <- list.dirs(here("data"), recursive = F) %>% discard(str_detect(., pattern = "_template"))
 sessions_dir <- map(ids, ~list.dirs(.x, recursive = F)) %>% flatten_chr
 infant_synced <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "mot_features_infant.RData")))
-synced_session_dirs <- sessions_dir[infant_synced]
+synced_session_dirs <- sessions_dir[infant_synced ==1]
 
-mot_features <- map_chr(synced_session_dirs, ~ list.files(str_glue("{.x}/synced_data"), "mot_features_infant.RData", full.names = T))
-
-rds <- list.files(here("tune_ml","mot_features"), pattern = ".RData", full.names = T)
+rds <- map_chr(synced_session_dirs, ~ str_glue("{.x}/synced_data/mot_features_infant.RData"))
 
 load(rds[1])
 slide_all <- slide %>% 
