@@ -22,7 +22,6 @@ ds <- read_csv(here("analysis-lena-imu","lena-imu-compiled.csv"))
 
 
 ds$id_uni <- factor(ds$id*100+ds$session)
-ds <- ds %>% filter(id_uni != 9909)
 
 ds <- ds %>% select(-(subjID:recIdEnd), -(roll.key:Bin.Mins), clockTimeStart)
 ds <- ds %>% rename_with(janitor::make_clean_names)
@@ -39,7 +38,7 @@ ggplot(ds, aes(x = sit_time, y = adult_word_cnt)) +
 ds %>% filter(age > 8) %>% lena_pos_corrs()
 ds %>% filter(age > 8) %>% 
   ggplot(aes(x = held_time, y = adult_word_cnt, color = id_uni)) + 
-  geom_point() 
+  geom_point(color = "gray") + geom_smooth(se = F, method = "lm")
 
 ds_long <- ds %>% pivot_longer(cols = sit_time:upright_time, names_to = "position", values_to = "prop") %>% 
   mutate(Position = factor(position,
@@ -52,11 +51,10 @@ pal <-  c("#F0E442","#009E73","#56B4E9", "#E69F00",  "#0072B2") %>%  set_names(u
 ds_long %>% filter(age < 8) %>% 
 ggplot(aes(x = clock_time_start_2, y = prop, fill = Position)) + 
   geom_bar(stat = "identity") + 
-  facet_wrap("id_uni", ncol = 1) + 
+  facet_wrap("id_uni", ncol = 1, strip.position = "left") + 
   scale_fill_manual(values = pal) + 
   scale_x_time(breaks = breaks_width("2 hour"), name = "") + 
   theme(legend.position = "bottom", 
-        strip.text = element_blank(),
         axis.ticks.y = element_blank(),
         axis.text.y = element_blank()) + 
   ylab("Individual Infants") + 
@@ -67,20 +65,19 @@ ggsave(here("analysis-lena-imu", "figures", "posture-timeline-younger.png"))
 ds_long %>% filter(age >= 8) %>% 
   ggplot(aes(x = clock_time_start_2, y = prop, fill = Position)) + 
   geom_bar(stat = "identity") + 
-  facet_wrap("id_uni", ncol = 1) + 
+  facet_wrap("id_uni", ncol = 1, strip.position = "left") + 
   scale_fill_manual(values = pal) + 
   scale_x_time(breaks = breaks_width("2 hour"), name = "") + 
   theme(legend.position = "bottom", 
-        strip.text = element_blank(),
         axis.ticks.y = element_blank(),
         axis.text.y = element_blank()) + 
   ylab("Individual Infants") + 
   ggtitle("11-14 months")
 ggsave(here("analysis-lena-imu", "figures", "posture-timeline-older.png"))
 
+ds_long %>% filter(age <= 8) %>% group_by(position) %>% get_summary_stats(prop)
 
 ds_long %>% filter(age >= 8) %>% group_by(position) %>% get_summary_stats(prop)
-ds_long %>% filter(age <= 8) %>% group_by(position) %>% get_summary_stats(prop)
 
 
 #Dominant body position? 
@@ -111,3 +108,11 @@ ggplot(dominance, aes(x = dominant, color = age_group)) +
 ggplot(dominance, aes(x = dominant)) + 
   geom_histogram(position = "dodge") + 
   facet_wrap("age_group", scales = "free_y")
+
+
+
+
+
+
+
+
