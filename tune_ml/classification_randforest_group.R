@@ -10,8 +10,8 @@ i_am(".here")
 #LOAD DATA
 load("tune_ml/compiled_data_lite.RData")
 
-training <- slide_filt %>% group_by(code) %>% slice_head(prop = .75) %>% ungroup 
-testing <- slide_filt %>% group_by(code) %>% slice_tail(prop = .25) %>% ungroup
+training <- slide_filt %>% group_by(code) %>% slice_head(prop = .75) %>% ungroup %>% select(-id)
+testing <- slide_filt %>% group_by(code) %>% slice_tail(prop = .25) %>% ungroup %>% select(-id)
 
 not_all_na <- function(x) any(!is.na(x))
 training <- training %>% select_if(not_all_na)
@@ -24,4 +24,4 @@ print(res$`Balanced Accuracy`)
 print(res$`Table`)
 
 
-save(rfmodel, "tune_ml/group_model.RData")
+save(rfmodel, file = "tune_ml/group_model.RData")

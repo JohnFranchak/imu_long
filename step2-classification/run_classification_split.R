@@ -18,6 +18,7 @@ i_am(".here")
 # id <- 110
 # session <- 4
 # who <- "infant"
+# type <- "group"
 load(here("data",id,session, "synced_data", str_glue("mot_features_{who}.RData")))
 
 print(str_glue("Running id {id} session {session}"))
@@ -42,43 +43,38 @@ testing <- slide_filt %>% group_by(code) %>% slice_tail(prop = .4) %>% ungroup %
 
 not_all_na <- function(x) any(!is.na(x))
 training <- training %>% select_if(not_all_na)
-rfmodel <- randomForest(code ~ ., data = training, localImp = TRUE, proximity = FALSE, ntree = 150)
 
 if (type == "split") {
+  rfmodel <- randomForest(code ~ ., data = training, localImp = TRUE, proximity = FALSE, ntree = 150)
   predictions <- predict(rfmodel, testing, type = "class")
-} else {
+  u <- union(predictions, testing$code)
+  res <- confusion_matrix(factor(testing$code, u),factor(predictions, u))
+}
+if (type == "group") {
   load("tune_ml/group_model.RData")
-  predictions <- predict(group_model, testing, type = "class") %>% pull(.pred_class)
+  predictions <- predict(rfmodel, slide_filt, type = "class")
+  u <- union(predictions, slide_filt$code)
+  res <- confusion_matrix(factor(slide_filt$code, u),factor(predictions, u))
 }
 
-
-u <- union(predictions, testing$code)
-res <- confusion_matrix(factor(testing$code, u),factor(predictions, u))
 print(res$`Balanced Accuracy`)
 print(res$`Table`)
 
-save(res, file =  here("data",id,session, "synced_data", glue("model_performance_{who}.RData")))
+save(res, file =  here("data",id,session, "synced_data", glue("model_performance_{who}_{type}.RData")))
 
 #FULL DAY ---- 
 if (is.null(slide$exclude_period)) slide$exclude_period <- 0
 
-if (type == "split") {
-  predictions_full <- slide %>% 
-    select(time, nap_period, video_period, exclude_period) %>% 
-    bind_cols(tibble(pos = predict(rfmodel, slide, type = "class"))) %>% 
-    filter(exclude_period == 0) 
-} else {
-  #THIS IS BROKEN
-  # predictions_full <- slide %>% 
-  #   select(time, nap_period, video_period, exclude_period) %>% 
-  #   bind_cols(tibble(pos = predict(group_model, slide, type = "class"))) %>% 
-  #   filter(exclude_period == 0) 
-}
+
+predictions_full <- slide %>% 
+  select(time, nap_period, video_period, exclude_period) %>% 
+  bind_cols(tibble(pos = predict(rfmodel, slide, type = "class"))) %>% 
+  filter(exclude_period == 0) 
 
 
 
 predictions_full %>% filter(nap_period == 0) %>% pull(pos) %>% fct_count(prop = T)
 
-write_csv(predictions_full, here("data",id,session, "synced_data", glue("position_predictions_{who}.csv")))
+write_csv(predictions_full, here("data",id,session, "synced_data", glue("position_predictions_{who}_{type}.csv")))
 
 }

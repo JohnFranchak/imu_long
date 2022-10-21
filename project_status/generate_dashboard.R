@@ -52,27 +52,28 @@ session_data <- ppt_info %>% select(id, session, agemo, date, start_time, end_ti
 dashboard <- left_join(dashboard, session_data)
 
 # Get model performance
-last_updated <- file.info(here("code","project_status", "project_dashboard.csv"))$mtime
-old_dashboard <- read_csv(here("code","project_status", "project_dashboard.csv")) %>% select(sessions_dir, overall_accuracy:upright_accuracy)
+# last_updated <- file.info(here("code","project_status", "project_dashboard.csv"))$mtime
+# old_dashboard <- read_csv(here("code","project_status", "project_dashboard.csv")) %>% select(sessions_dir, overall_accuracy:upright_accuracy)
+# 
+# synced_ppts <- dashboard %>% filter(infant_synced == 1) %>% 
+#   transmute(sync_path = str_glue("{sessions_dir}/synced_data/model_performance_infant.RData")) %>% unlist %>% 
+#   keep(~ file.info(.x)$mtime > last_updated)
+# 
+# session_data <- old_dashboard %>% filter(FALSE)
 
-synced_ppts <- dashboard %>% filter(infant_synced == 1) %>% 
-  transmute(sync_path = str_glue("{sessions_dir}/synced_data/model_performance_infant.RData")) %>% unlist %>% 
-  keep(~ file.info(.x)$mtime > last_updated)
+# for (ppt in synced_ppts) {
+#   rm(res)
+#   print(ppt)
+#   load(ppt)
+#   temp_acc <- res$`Class Level Results`[[1]]$`Balanced Accuracy` %>% set_names(res$`Class Level Results`[[1]]$`Class`)
+#   session_data <- bind_rows(session_data, tibble(sessions_dir = str_remove(ppt,"/synced_data/model_performance_infant.RData"), overall_accuracy = res$`Overall Accuracy`, balanced_accuracy = res$`Balanced Accuracy`, 
+#                                                  held_accuracy = temp_acc[["Held"]], prone_accuracy = temp_acc[["Prone"]], sitting_accuracy = temp_acc[["Sitting"]], 
+#                                                  supine_accuracy = temp_acc[["Supine"]], upright_accuracy = temp_acc[["Upright"]]))
+# }
+# old_dashboard <- old_dashboard %>% filter(!(sessions_dir %in% str_remove(synced_ppts,"/synced_data/model_performance_infant.RData")))
+# old_dashboard <- old_dashboard %>% bind_rows(session_data)
 
-session_data <- old_dashboard %>% filter(FALSE)
-for (ppt in synced_ppts) {
-  rm(res)
-  print(ppt)
-  load(ppt)
-  temp_acc <- res$`Class Level Results`[[1]]$`Balanced Accuracy` %>% set_names(res$`Class Level Results`[[1]]$`Class`)
-  session_data <- bind_rows(session_data, tibble(sessions_dir = str_remove(ppt,"/synced_data/model_performance_infant.RData"), overall_accuracy = res$`Overall Accuracy`, balanced_accuracy = res$`Balanced Accuracy`, 
-                                                 held_accuracy = temp_acc[["Held"]], prone_accuracy = temp_acc[["Prone"]], sitting_accuracy = temp_acc[["Sitting"]], 
-                                                 supine_accuracy = temp_acc[["Supine"]], upright_accuracy = temp_acc[["Upright"]]))
-}
-old_dashboard <- old_dashboard %>% filter(!(sessions_dir %in% str_remove(synced_ppts,"/synced_data/model_performance_infant.RData")))
-old_dashboard <- old_dashboard %>% bind_rows(session_data)
-
-dashboard_full <- left_join(dashboard, old_dashboard, by = "sessions_dir")
+# dashboard_full <- left_join(dashboard, old_dashboard, by = "sessions_dir")
 
 dashboard_full %>% write_csv(here("code","project_status", "project_dashboard.csv"))
 
