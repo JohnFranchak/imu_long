@@ -51,6 +51,8 @@ ppt_info  <- ppt_info %>%  mutate(agemo = as.numeric((mdy(date)-mdy(infant_dob))
 session_data <- ppt_info %>% select(id, session, agemo, date, start_time, end_time) %>% drop_na
 dashboard <- left_join(dashboard, session_data)
 
+dashboard %>% write_csv(here("code","project_status", "project_dashboard.csv"))
+
 # Get model performance
 # last_updated <- file.info(here("code","project_status", "project_dashboard.csv"))$mtime
 # old_dashboard <- read_csv(here("code","project_status", "project_dashboard.csv")) %>% select(sessions_dir, overall_accuracy:upright_accuracy)
