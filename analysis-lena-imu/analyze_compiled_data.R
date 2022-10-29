@@ -110,8 +110,14 @@ ggplot(dominance, aes(x = dominant)) +
   facet_wrap("age_group", scales = "free_y")
 
 
+# Export for WPA
 
+wpa <- ds %>% filter(age >= 8, nap_time == 0)
+wpa <- wpa %>% select(id_uni, age, sit_time:upright_time, adult_word_cnt, child_utt_cnt, conv_turn_count, child_cry_scnds)
 
+wpa %>% cor_mat(-id_uni, -age) %>% cor_mark_significant()
+
+wpa %>% write_csv("analysis-lena-imu/wpa_lena_pos.csv")
 
 
 
