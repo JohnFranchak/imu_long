@@ -10,8 +10,14 @@ start_time <- Sys.time()
 #Set cores for parallel processing
 # registerDoMC(cores = 12)
 
+all_cores <- parallel::detectCores(logical = FALSE)
+
+library(doParallel)
+cl <- makePSOCKcluster(all_cores)
+registerDoParallel(cl)
+
 # Custom set of multi-class metrics
-multi_metric <- metric_set(accuracy, kap, bal_accuracy, sens, spec)
+multi_metric <- metric_set(accuracy, kap, bal_accuracy, f_meas, ppv, sens, spec)
 
 #LOAD DATA
 load("tune_ml/compiled_data_lite.RData")
@@ -64,8 +70,10 @@ posture_fit_rs <-
   fit_resamples(split_by_id, metrics = multi_metric, 
                 control = control_resamples(save_pred = T, parallel_over = "everything", verbose = T))
 
-metrics <- collect_metrics(posture_fit_rs, summarize = F) %>% filter(.metric == "bal_accuracy")
-collect_predictions(posture_fit_rs)
+metrics <- collect_metrics(posture_fit_rs, summarize = F)
+collect_metrics(posture_fit_rs, summarize = F) %>% group_by(.metric) %>% rstatix::get_summary_stats(.estimate)
+ggplot(metrics, aes(x = .metric, y = .estimate)) + geom_boxplot()
+# collect_predictions(posture_fit_rs)
 
 end_time <- Sys.time()
 elapsed <- end_time - start_time
