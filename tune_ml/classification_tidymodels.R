@@ -75,6 +75,11 @@ collect_metrics(posture_fit_rs, summarize = F) %>% group_by(.metric) %>% rstatix
 ggplot(metrics, aes(x = .metric, y = .estimate)) + geom_boxplot()
 # collect_predictions(posture_fit_rs)
 
+pred_rs <- collect_predictions(posture_fit_rs, summarize = TRUE)
+pred_rs$truth <- train_data$code
+
+conf_mat_resampled(posture_fit_rs, tidy = F) %>% autoplot(type = "heatmap")
+
 end_time <- Sys.time()
 elapsed <- end_time - start_time
 save(elapsed, posture_fit_rs, metrics, file = "tune_ml/classification_tidymodels_output.RData")
