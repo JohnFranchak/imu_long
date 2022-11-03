@@ -9,6 +9,8 @@ sync_lena_imu <- function(id, session, who = "infant") {
   # session <- 3
   # who <- "infant"
   
+  ## TO DO -- More interesting stats about motor w/in the bin...# of transitions, # of events, stuff like that
+  
   p <- read_csv(here("data",id,session,"synced_data","position_predictions_infant_group.csv")) %>% 
     mutate(pos = factor(pos, levels = c("Prone","Upright","Held","Sitting","Supine")))
   p$time <- with_tz(p$time, "America/Los_Angeles")

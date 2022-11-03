@@ -6,6 +6,8 @@ library(patchwork)
 library(janitor)
 library(rstatix)
 library(scales)
+library(lme4)
+library(lmerTest)
 theme_update(text = element_text(size = 14),
              axis.text.x = element_text(size = 14, color = "black"), axis.title.x = element_text(size = 16),
              axis.text.y = element_text(size = 14,  color = "black"), axis.title.y = element_text(size = 16), 
@@ -29,9 +31,10 @@ ds <- ds %>% rename_with(janitor::make_clean_names)
 lena_pos_corrs <- . %>% cor_mat(adult_word_cnt, conv_turn_count, child_utt_cnt, child_cry_scnds, tvn, sit_time:upright_time) %>% cor_mark_significant()
 
 ds %>% lena_pos_corrs()
-ds %>% group_by(id_uni) %>% group_map(~ .x %>% lena_pos_corrs())
+ds %>% filter(age > 8) %>% group_by(id_uni) %>% group_map(~ .x %>% lena_pos_corrs())
 
-ggplot(ds, aes(x = sit_time, y = adult_word_cnt)) + 
+ds %>% filter(age > 8) %>% 
+ggplot(aes(x = held_time, y = adult_word_cnt)) + 
   geom_point() + 
   facet_wrap("id_uni")
 
@@ -39,6 +42,14 @@ ds %>% filter(age > 8) %>% lena_pos_corrs()
 ds %>% filter(age > 8) %>% 
   ggplot(aes(x = held_time, y = adult_word_cnt, color = id_uni)) + 
   geom_point(color = "gray") + geom_smooth(se = F, method = "lm")
+
+ds %>% filter(age > 8) %>% 
+  lmer(adult_word_cnt ~ held_time + (1 + held_time|id_uni), data = .) -> res
+summary(res)
+
+ds %>% filter(age > 8) %>% 
+  lmer(adult_word_cnt ~ sit_time + (1 + sit_time|id_uni), data = .) -> res
+summary(res)
 
 ds_long <- ds %>% pivot_longer(cols = sit_time:upright_time, names_to = "position", values_to = "prop") %>% 
   mutate(Position = factor(position,
