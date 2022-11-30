@@ -77,5 +77,5 @@ dashboard %>% write_csv(here("code","project_status", "project_dashboard.csv"))
 
 # dashboard_full <- left_join(dashboard, old_dashboard, by = "sessions_dir")
 
-dashboard_full %>% write_csv(here("code","project_status", "project_dashboard.csv"))
+# dashboard_full %>% write_csv(here("code","project_status", "project_dashboard.csv"))
 
