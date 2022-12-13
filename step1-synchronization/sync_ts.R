@@ -12,8 +12,8 @@ library(glue)
 i_am(".here")
 source(here("code","step1-synchronization","motion_features.R"))
 
-id <- 110
-session <- 4
+id <- 119
+session <- 1
 who <- "infant"
 
 start_time <- "2022-09-01 01:15:00"
