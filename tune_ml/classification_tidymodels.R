@@ -82,5 +82,8 @@ conf_mat_resampled(posture_fit_rs, tidy = F) %>% autoplot(type = "heatmap")
 
 end_time <- Sys.time()
 elapsed <- end_time - start_time
+
+ggplot(metrics, aes(.estimate)) + geom_histogram() + facet_wrap(".metric", scales = "free") + xlim(0,1)
+
 save(elapsed, posture_fit_rs, metrics, file = "tune_ml/classification_tidymodels_output.RData")
 
