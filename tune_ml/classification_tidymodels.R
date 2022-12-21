@@ -71,8 +71,7 @@ posture_fit_rs <-
                 control = control_resamples(save_pred = T, parallel_over = "everything", verbose = T))
 
 metrics <- collect_metrics(posture_fit_rs, summarize = F)
-collect_metrics(posture_fit_rs, summarize = F) %>% group_by(.metric) %>% rstatix::get_summary_stats(.estimate)
-ggplot(metrics, aes(x = .metric, y = .estimate)) + geom_boxplot()
+metrics %>% group_by(.metric) %>% rstatix::get_summary_stats(.estimate)
 # collect_predictions(posture_fit_rs)
 
 pred_rs <- collect_predictions(posture_fit_rs, summarize = TRUE)
