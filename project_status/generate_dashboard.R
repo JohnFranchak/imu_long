@@ -10,7 +10,7 @@ ids <- list.dirs(here("data"), recursive = F) %>% discard(str_detect(., pattern 
 sessions_dir <- map(ids, ~list.dirs(.x, recursive = F)) %>% flatten_chr
 completed_paperwork <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/scanned_paperwork"))))
 raw_videos <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/videos_raw"))))
-converted_videos <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/videos_converted"))))
+converted_videos <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/videos_converted"),"mp4|mov")))
 imu_files <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/imu"), recursive = T, ".csv")))
 datavyu_files <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/coding"), ".opf")))
 activity_exported <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/coding"), "activity.csv")))
