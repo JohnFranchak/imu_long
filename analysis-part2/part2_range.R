@@ -3,12 +3,14 @@ library(av)
 library(tidyvyur)
 library(lubridate)
 library(here)
+library(timetk)
 rm(list = ls())
-source(here("code","analysis-part2","av_info.R"))
 i_am(".here")
+source(here("code","analysis-part2","av_info.R"))
 
-id <- 111
-session <- 2
+
+id <- 125
+session <- 1
 who <- "infant"
 
 av_info <- av_info(id, session)
