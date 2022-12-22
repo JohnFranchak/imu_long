@@ -3,11 +3,12 @@ library(av)
 library(tidyvyur)
 library(lubridate)
 library(here)
+rm(list = ls())
 source(here("code","analysis-part2","av_info.R"))
 i_am(".here")
 
-id <- 102
-session <- 3
+id <- 111
+session <- 2
 who <- "infant"
 
 av_info <- av_info(id, session)
@@ -37,7 +38,6 @@ activity$onset <- pt2_start_time + seconds(activity$onset_s)
 activity$offset <- pt2_start_time + seconds(activity$offset_s)
 activity$pos = ifelse(activity$pos == "sr", "ss", activity$pos)
 activity$pos <- factor(activity$pos, levels = c("hs", "l","p","ss","u"), labels = c("Held", "Supine","Prone","Sitting","Upright"))
-
 
 for (i in 1:nrow(activity)) {
   ds_coded[between_time(ds_coded$time, activity$onset[i], activity$offset[i]),]$code <- activity$pos[i]
