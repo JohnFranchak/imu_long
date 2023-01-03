@@ -53,15 +53,22 @@ ggplot(agree, aes(x = prop_human, y = prop_model)) + facet_wrap("pos") +
 (ind_corr <- agree %>% group_by(file) %>% cor_test(vars = c("prop_model", "prop_human")) %>% arrange(cor))
 # ind_corr %>% write_csv(here("code","analysis-part2", "agree_by_ppt.csv"))
 
-# check individual agree cf pt 1 accuracy
+# check individual agree cf pt 1 accuracy - IT IS NOT
+
+ind_corr <- ind_corr %>% 
+  filter(file != "Z:/study_imu_long/data/110/4/synced_data/position_agreement_infant_pt2.csv") %>% 
+  filter(file != "Z:/study_imu_long/data/116/1/synced_data/position_agreement_infant_pt2.csv")
 
 split_model_acc <- function(file) {
   file_acc <- str_replace(file, pattern = "position_agreement_infant_pt2.csv", 
                           replacement = "model_performance_infant_split.RData")
-  load(file_acc)
+  file_acc <- str_remove(file_acc, pattern = "Z:/study_imu_long/data/")
+  print(file_acc)
+  load(here("data",file_acc))
   res$`Balanced Accuracy`
 }
 
-ind_corr <- ind_corr %>% mutate(pt1_acc = split_model_acc(file))
-
 acc_pt1 <- map_dbl(ind_corr$file, split_model_acc)
+ind_corr$acc_pt1 <- acc_pt1
+
+cor_test(ind_corr, vars = c("cor", "acc_pt1"))
