@@ -19,6 +19,7 @@ lena_downloaded <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/lena
 lena_processed <-  map_int(sessions_dir, ~ length(list.dirs(str_glue("{.x}/lena/output/bin"))))
 infant_synced <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "mot_features_infant.RData")))
 lena_synced <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "lena_imu_infant.csv")))
+pt2_processed <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "position_agreement_infant_pt2.csv")))
 
 #check coding
 opf_files <- map(sessions_dir, ~ list.files(str_glue("{.x}/coding"), "*pt1.opf", full.names = T)) %>% set_names(sessions_dir)
@@ -35,7 +36,7 @@ for (i in 1:length(opf_files)) {
 
 
 dashboard <- tibble(sessions_dir, completed_paperwork, raw_videos, converted_videos, imu_files, datavyu_files, position_primary, position_rel, activity_exported, 
-                    biostamp_annotations, infant_synced, lena_downloaded, lena_processed, lena_synced) %>% 
+                    biostamp_annotations, infant_synced, lena_downloaded, lena_processed, lena_synced, pt2_processed) %>% 
   separate(sessions_dir, into = c(NA, NA, NA, "id", "session"), sep = "/", remove = FALSE) %>%
   mutate(across(id:session, as.numeric)) %>% 
   arrange(id, session) %>% 
