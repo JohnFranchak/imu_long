@@ -8,6 +8,9 @@ pt2_files <- list.files(here("data"), pattern = "position_agreement_infant_pt2.c
 ds <- read_csv(pt2_files, id = "file")
 write_csv(ds, here("code", "analysis-part2", "compiled_agreement.csv"))
 
+# LOCAL
+# ds <- read_csv(here("analysis-part2", "compiled_agreement.csv"))
+
 # OVERALL, UGH
 ds_filt <- ds %>% filter(nap_period == 0 & exclude_period == 0 & !is.na(code) & !is.na(pos))
 ds_filt <- ds %>% filter(exclude_period == 0 & !is.na(code) & !is.na(pos))
@@ -47,5 +50,9 @@ cor_test(agree, vars = c("prop_model", "prop_human"))
 ggplot(agree, aes(x = prop_human, y = prop_model)) + facet_wrap("pos") + 
   geom_point() + geom_smooth(method = "lm") + xlim(0,1) + ylim(0,1)
 
+agree %>% group_by(file) %>% cor_test(vars = c("prop_model", "prop_human")) %>% arrange(cor)
 
+# agree %>% group_by(file) %>% cor_test(vars = c("prop_model", "prop_human")) %>% write_csv(here("code","analysis-part2", "agree_by_ppt.csv"))
+
+# check individual agree cf pt 1 accuracy
 
