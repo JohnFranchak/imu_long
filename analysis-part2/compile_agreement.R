@@ -50,9 +50,18 @@ cor_test(agree, vars = c("prop_model", "prop_human"))
 ggplot(agree, aes(x = prop_human, y = prop_model)) + facet_wrap("pos") + 
   geom_point() + geom_smooth(method = "lm") + xlim(0,1) + ylim(0,1)
 
-agree %>% group_by(file) %>% cor_test(vars = c("prop_model", "prop_human")) %>% arrange(cor)
-
-# agree %>% group_by(file) %>% cor_test(vars = c("prop_model", "prop_human")) %>% write_csv(here("code","analysis-part2", "agree_by_ppt.csv"))
+(ind_corr <- agree %>% group_by(file) %>% cor_test(vars = c("prop_model", "prop_human")) %>% arrange(cor))
+# ind_corr %>% write_csv(here("code","analysis-part2", "agree_by_ppt.csv"))
 
 # check individual agree cf pt 1 accuracy
 
+split_model_acc <- function(file) {
+  file_acc <- str_replace(file, pattern = "position_agreement_infant_pt2.csv", 
+                          replacement = "model_performance_infant_split.RData")
+  load(file_acc)
+  res$`Balanced Accuracy`
+}
+
+ind_corr <- ind_corr %>% mutate(pt1_acc = split_model_acc(file))
+
+acc_pt1 <- map_dbl(ind_corr$file, split_model_acc)
