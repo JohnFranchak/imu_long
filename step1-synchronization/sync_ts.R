@@ -12,12 +12,12 @@ library(glue)
 i_am(".here")
 source(here("code","step1-synchronization","motion_features.R"))
 
-id <- 119
+id <- 130
 session <- 1
 who <- "infant"
 
-start_time <- "2022-09-01 01:15:00"
-end_time <- "2022-09-01 21:15:00"
+# start_time <- "2022-09-01 01:15:00"
+# end_time <- "2022-09-01 21:15:00"
 
 ppt_list <- read_csv(here("data","ppt_info.csv")) %>% 
   filter(id == .env[["id"]], session == .env[["session"]])
@@ -183,6 +183,9 @@ session_param$end_time_coded <- end_time_coded
 
 save(slide, session_param, file = here("data",id,session, "synced_data", glue("mot_features_{who}.RData")))
 
+source(here("code","step2-classification","run_classification_split.R"))
+run_classification_split(id = id, session = session, type = "split")
+run_classification_split(id = id, session = session, type = "group")
 
 # DEBUGGING ----------- 
 #IF MORE CONTROL OVER TIME IS NEEDED, I CAN ADJUST SECONDS BY A MULTIPLIER
