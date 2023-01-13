@@ -8,7 +8,7 @@ require(glue)
 i_am(".here")
 
 #LOAD DATA
-load("tune_ml/compiled_data_lite.RData")
+load( here("code","tune_ml","compiled_data_lite.RData"))
 
 training <- slide_filt %>% group_by(code) %>% slice_head(prop = .75) %>% ungroup %>% select(-id)
 testing <- slide_filt %>% group_by(code) %>% slice_tail(prop = .25) %>% ungroup %>% select(-id)
