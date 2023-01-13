@@ -8,7 +8,4 @@ synced_ppts <- read_csv(here("code","project_status","project_dashboard.csv")) %
 
 walk2(synced_ppts$id, synced_ppts$session, ~ process_its(id = .x, session = .y))
 
-#rm computations from later in the pipeline
-walk(synced_ppts$sessions_dir, ~ file.remove(str_glue("{.x}/synced_data/lena_infant_imu.csv"))) 
-
 source(here("code","project_status","generate_dashboard.R"))
