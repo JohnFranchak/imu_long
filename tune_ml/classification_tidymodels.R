@@ -4,7 +4,7 @@ library(tidyverse)
 library(tidymodels)
 library(doMC)
 tidymodels_prefer()
-
+i_am(".here")
 start_time <- Sys.time()
 
 #Set cores for parallel processing
@@ -20,7 +20,7 @@ registerDoParallel(cl)
 multi_metric <- metric_set(accuracy, kap, bal_accuracy, f_meas, ppv, sens, spec)
 
 #LOAD DATA
-load("tune_ml/compiled_data_lite.RData")
+load( here("code","tune_ml","compiled_data_lite.RData"))
 
 #Split data into train/test, ensuring all ids appear in both
 data_split <- initial_split(slide_filt, prop = 3/4, strata = "id")
@@ -84,5 +84,5 @@ elapsed <- end_time - start_time
 
 ggplot(metrics, aes(.estimate)) + geom_histogram() + facet_wrap(".metric", scales = "free") + xlim(0,1)
 
-save(elapsed, posture_fit_rs, metrics, file = "tune_ml/classification_tidymodels_output.RData")
+save(elapsed, posture_fit_rs, metrics, file =  here("code","tune_ml","classification_tidymodels_output.RData"))
 
