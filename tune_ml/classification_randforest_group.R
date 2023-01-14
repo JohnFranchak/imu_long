@@ -24,4 +24,4 @@ print(res$`Balanced Accuracy`)
 print(res$`Table`)
 
 
-save(rfmodel, file = "tune_ml/group_model.RData")
+save(rfmodel, file =  here("code","tune_ml","group_model.RData"))
