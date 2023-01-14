@@ -44,11 +44,11 @@ ds %>% filter(age > 8) %>%
   geom_point(color = "gray") + geom_smooth(se = F, method = "lm")
 
 ds %>% filter(age > 8) %>% 
-  lmer(adult_word_cnt ~ held_time + (1 + held_time|id_uni), data = .) -> res
+  lmerTest::lmer(adult_word_cnt ~ held_time + (1 + held_time|id_uni), data = .) -> res
 summary(res)
 
 ds %>% filter(age > 8) %>% 
-  lmer(adult_word_cnt ~ sit_time + (1 + sit_time|id_uni), data = .) -> res
+  lmerTest::lmer(adult_word_cnt ~ sit_time + (1 + sit_time|id_uni), data = .) -> res
 summary(res)
 
 ds_long <- ds %>% pivot_longer(cols = sit_time:upright_time, names_to = "position", values_to = "prop") %>% 
