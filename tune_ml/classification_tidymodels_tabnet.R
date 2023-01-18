@@ -138,6 +138,27 @@ res <- posture_wflow %>%
 
 res %>% show_best("accuracy") %>% select(- c(.estimator, .config))
 
+# TUNED MODEL
+
+mod <- tabnet(epochs = 15, decision_width = 32, attention_width = 16,
+              num_steps = 5, penalty = 1.02, feature_reusage = 1.22, learn_rate = 0.02) %>%
+  set_engine("torch", verbose = TRUE) %>%
+  set_mode("classification")
+
+# Combine the pre-processed data and model into a workflow
+posture_wflow <- 
+  workflow() %>% 
+  add_model(mod) %>% 
+  add_recipe(posture)
+
+# SINGLE MODEL
+
+posture_fit <- posture_wflow %>% fit(train_data)
+posture_aug <- augment(posture_fit, test_data)
+
+#Overall performance
+posture_aug %>% multi_metric(truth = code, estimate = .pred_class)
+
 # RESAMPLING
 
 # Resample by ID
@@ -157,9 +178,6 @@ pred_rs <- collect_predictions(posture_fit_rs, summarize = TRUE)
 pred_rs$truth <- train_data$code
 
 conf_mat_resampled(posture_fit_rs, tidy = F) %>% autoplot(type = "heatmap")
-
-end_time <- Sys.time()
-elapsed <- end_time - start_time
 
 ggplot(metrics, aes(.estimate)) + geom_histogram() + facet_wrap(".metric", scales = "free") + xlim(0,1)
 
