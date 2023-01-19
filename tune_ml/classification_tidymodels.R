@@ -59,6 +59,56 @@ posture_aug %>% multi_metric(truth = code, estimate = .pred_class)
 posture_aug %>% group_by(id) %>% multi_metric(truth = code, estimate = .pred_class)
 posture_aug %>% conf_mat(truth = code, estimate = .pred_class) %>% autoplot(type = "heatmap")
 
+# TUNING
+
+rf_mod <- rand_forest(mode = "classification",
+                      mtry = tune(),
+                      trees = tune(),
+                      min_n = tune()) %>%
+  set_engine("randomForest") 
+
+
+posture_wflow <- 
+  workflow() %>% 
+  add_model(rf_mod) %>% 
+  add_recipe(posture)
+
+grid <-
+  posture_wflow %>%
+  parameters() %>%
+  update(
+    mtry = mtry(range = c(1, 40)),
+    trees = trees(),
+    min_n = min_n()
+  ) %>%
+  grid_max_entropy(size = 8)
+grid
+
+ctrl <- control_race(verbose = TRUE, verbose_elim = TRUE)
+folds <- vfold_cv(train_data, v = 5)
+set.seed(777)
+
+res <- posture_wflow %>%
+  tune_race_anova(
+    resamples = folds,
+    grid = grid,
+    control = ctrl
+  )
+
+res %>% show_best("accuracy") %>% select(- c(.estimator, .config))
+
+# Based on tuning
+rf_mod <- rand_forest(mode = "classification",
+                      mtry = 29,
+                      trees = 1625,
+                      min_n = 6) %>%
+  set_engine("randomForest") 
+
+posture_wflow <- 
+  workflow() %>% 
+  add_model(rf_mod) %>% 
+  add_recipe(posture)
+
 # RESAMPLING
 
 # Resample by ID

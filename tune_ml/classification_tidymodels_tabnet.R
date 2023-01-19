@@ -182,4 +182,5 @@ conf_mat_resampled(posture_fit_rs, tidy = F) %>% autoplot(type = "heatmap")
 ggplot(metrics, aes(.estimate)) + geom_histogram() + facet_wrap(".metric", scales = "free") + xlim(0,1)
 
 
+save(metrics, file =  here("tune_ml","classification_tidymodels_output_tabnet.RData"))
 
