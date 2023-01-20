@@ -6,7 +6,7 @@ library(lubridate)
 library(here)
 i_am(".here")
 
-ids <- list.dirs(here("data"), recursive = F) %>% purrr::discard(str_detect(., pattern = "_template"))
+ids <- list.dirs(here("data"), recursive = F) %>% purrr::discard(str_detect(., pattern = "_template")) %>% purrr::discard(str_detect(., pattern = "_RAs"))
 sessions_dir <- map(ids, ~list.dirs(.x, recursive = F)) %>% flatten_chr
 completed_paperwork <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/scanned_paperwork"))))
 raw_videos <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/videos_raw"))))
