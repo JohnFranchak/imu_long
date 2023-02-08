@@ -21,7 +21,7 @@ multi_metric <- metric_set(accuracy, kap, bal_accuracy, f_meas, ppv, sens, spec)
 
 #LOAD DATA
 load( here("code","tune_ml","compiled_data_lite.RData"))
-load( here("tune_ml","compiled_data_lite.RData"))
+load("tune_ml/compiled_data_lite.RData")
 
 slide_filt <- slide_filt %>% 
   mutate(code = factor(ifelse(code == "Sitting", "Sitting", "Not Sitting")))
@@ -32,7 +32,7 @@ train_data <- training(data_split)
 test_data  <- testing(data_split)
 
 # Create a recipe for pre-processing the training data
-posture <- recipe(code ~ ., data = train_data) %>% 
+posture <- recipe(code ~ . , data = train_data) %>% 
   update_role(id, new_role = "ID") %>% 
   step_zv(all_predictors())
 
@@ -62,10 +62,9 @@ posture_aug %>% multi_metric(truth = factor(code), estimate = .pred_class)
 posture_aug %>% group_by(id) %>% multi_metric(truth = factor(code), estimate = .pred_class) %>% arrange(.estimate)
 
 #Classic RF with all data
-require(randomForest)
-
+library(randomForest)
 not_all_na <- function(x) any(!is.na(x))
-training <- slide_filt %>% select_if(not_all_na)
+training <- slide_filt %>% select_if(not_all_na) %>% select(-id)
 training$code <- factor(training$code)
 rfmodel <- randomForest(code ~ ., data = training, localImp = TRUE, proximity = FALSE, ntree = 150)
 save(rfmodel, file =  here("binary_models","group_model_sitting.RData"))
@@ -96,5 +95,5 @@ elapsed <- end_time - start_time
 
 ggplot(metrics, aes(.estimate)) + geom_histogram() + facet_wrap(".metric", scales = "free") + xlim(0,1)
 
-save(elapsed, posture_fit_rs, metrics, file =  here("code","tune_ml","classification_tidymodels_output.RData"))
+save(posture_fit_rs, metrics, file =  "binary_models/classification_tidymodels_sitting.RData")
 

@@ -61,3 +61,4 @@ tune_ml/classification_tidymodels_output.RData
 *.Rproj
 imu_long.Rproj
 imu_long.Rproj
+binary_models/classification_tidymodels_sitting.RData
