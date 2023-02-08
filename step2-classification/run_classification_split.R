@@ -1,12 +1,7 @@
 run_classification_split <- function(id, session, who = "infant", type = "split") {
 
-require(timetk)
 require(lubridate)
 require(here)
-require(janitor)
-require(slider)
-require(psych)
-require(corrr)
 require(randomForest)
 require(cvms)
 require(caret)
@@ -51,14 +46,21 @@ if (type == "split") {
   res <- confusion_matrix(factor(testing$code, u),factor(predictions, u))
 }
 if (type == "group") {
-  load("tune_ml/group_model.RData")
+  load(here("code","tune_ml","group_model.RData"))
   predictions <- predict(rfmodel, slide_filt, type = "class")
   u <- union(predictions, slide_filt$code)
   res <- confusion_matrix(factor(slide_filt$code, u),factor(predictions, u))
 }
-
+if (type == "sitting") {
+  load("binary_models/group_model_sitting.RData")
+  slide_filt <- slide_filt %>% mutate(code = factor(ifelse(code == "Sitting", "Sitting", "Not Sitting")))
+  predictions <- predict(rfmodel, slide_filt, type = "class")
+  u <- union(predictions, slide_filt$code)
+  res <- confusion_matrix(factor(slide_filt$code, u),factor(predictions, u))
+}
 print(res$`Balanced Accuracy`)
 print(res$`Table`)
+print(res$`Kappa`)
 
 save(res, file =  here("data",id,session, "synced_data", glue("model_performance_{who}_{type}.RData")))
 
