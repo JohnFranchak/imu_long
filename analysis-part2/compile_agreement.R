@@ -8,7 +8,8 @@ pt2_files <- list.files(here("data"), pattern = "sitting_agreement_infant_pt2.cs
 
 ds <- read_csv(pt2_files, id = "file")
 ds <- ds %>% mutate(file = str_remove(file, "Z:/study_imu_long/data/"),
-                    file = str_remove(file, "/synced_data/sitting_agreement_infant_pt2.csv"))
+                    file = str_remove(file, "/synced_data/sitting_agreement_infant_pt2.csv"),
+                    file = str_remove(file, "/synced_data/position_agreement_infant_pt2.csv"))
 # write_csv(ds, here("code", "analysis-part2", "compiled_agreement.csv"))
 
 # LOCAL
@@ -31,6 +32,9 @@ agree <- complete(agree, file, pos, fill = list(prop_human = 0, prop_model = 0))
 cor_test(agree, vars = c("prop_model", "prop_human"))
 
 ggplot(agree, aes(x = prop_human, y = prop_model)) + facet_wrap("pos") + 
+  geom_point() + geom_smooth(method = "lm") + xlim(0,1) + ylim(0,1)
+
+ggplot(filter(agree, pos == "Sitting"), aes(x = prop_human, y = prop_model)) +
   geom_point() + geom_smooth(method = "lm") + xlim(0,1) + ylim(0,1)
 
 # 10 min bins
@@ -82,7 +86,7 @@ agree <- complete(agree, nesting(file, bin, num_bins), pos, fill = list(prop_hum
 
 cor_test(agree, vars = c("prop_model", "prop_human"))
 
-ggplot(agree, aes(x = prop_human, y = prop_model, color = file)) + facet_wrap("pos") + 
+ggplot(filter(agree, num_bins > 2), aes(x = prop_human, y = prop_model, color = file)) + facet_wrap("pos") + 
   geom_point() + geom_smooth(method = "lm", se = F) + xlim(0,1) + ylim(0,1) + 
   theme(legend.position = "bottom")
 
