@@ -95,5 +95,5 @@ elapsed <- end_time - start_time
 
 ggplot(metrics, aes(.estimate)) + geom_histogram() + facet_wrap(".metric", scales = "free") + xlim(0,1)
 
-save(posture_fit_rs, metrics, file =  "binary_models/classification_tidymodels_sitting.RData")
+save(metrics, file =  "binary_models/classification_tidymodels_metrics_sitting.RData")
 
