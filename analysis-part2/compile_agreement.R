@@ -4,7 +4,7 @@ library(here)
 i_am(".here")
 
 pt2_files <- list.files(here("data"), pattern = "position_agreement_infant_pt2.csv", recursive = T, full.names = T)
-pt2_files <- list.files(here("data"), pattern = "sitting_agreement_infant_pt2.csv", recursive = T, full.names = T)
+# pt2_files <- list.files(here("data"), pattern = "sitting_agreement_infant_pt2.csv", recursive = T, full.names = T)
 
 ds <- read_csv(pt2_files, id = "file")
 ds <- ds %>% mutate(file = str_remove(file, "Z:/study_imu_long/data/"),
@@ -41,24 +41,25 @@ ggplot(filter(agree, pos == "Sitting"), aes(x = prop_human, y = prop_model)) +
 ds_filt <- ds %>% filter(nap_period == 0 & exclude_period == 0 & !is.na(code) & !is.na(pos))
 ds_filt <- ds_filt %>% group_by(file) %>% mutate(sample = row_number(), 
                                                  bin = floor(sample/300)) %>% 
-  add_count(file, bin) %>% ungroup() %>% filter(n > 200)
+  add_count(file, bin) %>% ungroup() %>% filter(n > 200) %>% group_by(file) %>% mutate(num_bins = length(unique(bin))) %>% ungroup()
 
-model <- ds_filt %>% count(file, bin, pos) %>% add_count(file, bin, wt = n, name = "total") %>% mutate(prop_model = n/total)
-human <- ds_filt %>% count(file, bin, code) %>% add_count(file, bin, wt = n, name = "total") %>% mutate(prop_human = n/total)
+model <- ds_filt %>% count(file, bin, num_bins, pos) %>% add_count(file, bin,num_bins,  wt = n, name = "total") %>% mutate(prop_model = n/total)
+human <- ds_filt %>% count(file, bin, num_bins,  code) %>% add_count(file, bin, num_bins, wt = n, name = "total") %>% mutate(prop_human = n/total)
 
-agree <- full_join(select(model, file, pos, prop_model, bin), 
-                   select(human, file, code, prop_human, bin), 
-                   by = c("file" = "file", "pos" = "code", "bin" = "bin"))
+agree <- full_join(select(model, file, pos, prop_model, bin, num_bins), 
+                   select(human, file, code, prop_human, bin, num_bins), 
+                   by = c("file" = "file", "pos" = "code", "bin" = "bin", "num_bins" = "num_bins"))
 agree <- agree %>% mutate(prop_human = ifelse(is.na(prop_human), 0, prop_human),
                           prop_model = ifelse(is.na(prop_model), 0, prop_model))
-agree <- complete(agree, nesting(file, bin), pos, fill = list(prop_human = 0, prop_model = 0))
+agree <- complete(agree, nesting(file, bin, num_bins), pos, fill = list(prop_human = 0, prop_model = 0))
 
 #remove worst performers
 # agree <- agree %>% filter(file != "106/1") %>% filter(file != "107/1")
 
 cor_test(agree, vars = c("prop_model", "prop_human"))
+agree %>% group_by(pos) %>% cor_test(vars = c("prop_model", "prop_human")) %>% arrange(cor)
 
-ggplot(agree, aes(x = prop_human, y = prop_model, color = file)) + facet_wrap("pos") + 
+ggplot(filter(agree, num_bins > 1), aes(x = prop_human, y = prop_model, color = file)) + facet_wrap("pos") + 
   geom_point() + geom_smooth(method = "lm", se = F) + xlim(0,1) + ylim(0,1) + 
   theme(legend.position = "bottom")
 
@@ -85,6 +86,7 @@ agree <- complete(agree, nesting(file, bin, num_bins), pos, fill = list(prop_hum
 # agree <- agree %>% filter(file != "106/1") %>% filter(file != "107/1")
 
 cor_test(agree, vars = c("prop_model", "prop_human"))
+agree %>% group_by(pos) %>% cor_test(vars = c("prop_model", "prop_human")) %>% arrange(cor)
 
 ggplot(filter(agree, num_bins > 2), aes(x = prop_human, y = prop_model, color = file)) + facet_wrap("pos") + 
   geom_point() + geom_smooth(method = "lm", se = F) + xlim(0,1) + ylim(0,1) + 
