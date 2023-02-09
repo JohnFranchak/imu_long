@@ -34,8 +34,8 @@ cor_test(agree, vars = c("prop_model", "prop_human"))
 ggplot(agree, aes(x = prop_human, y = prop_model)) + facet_wrap("pos") + 
   geom_point() + geom_smooth(method = "lm") + xlim(0,1) + ylim(0,1)
 
-ggplot(filter(agree, pos == "Sitting"), aes(x = prop_human, y = prop_model)) +
-  geom_point() + geom_smooth(method = "lm") + xlim(0,1) + ylim(0,1)
+# ggplot(filter(agree, pos == "Sitting"), aes(x = prop_human, y = prop_model)) +
+#   geom_point() + geom_smooth(method = "lm") + xlim(0,1) + ylim(0,1)
 
 # 10 min bins
 ds_filt <- ds %>% filter(nap_period == 0 & exclude_period == 0 & !is.na(code) & !is.na(pos))
@@ -59,12 +59,16 @@ agree <- complete(agree, nesting(file, bin, num_bins), pos, fill = list(prop_hum
 cor_test(agree, vars = c("prop_model", "prop_human"))
 agree %>% group_by(pos) %>% cor_test(vars = c("prop_model", "prop_human")) %>% arrange(cor)
 
-ggplot(filter(agree, num_bins > 1), aes(x = prop_human, y = prop_model, color = file)) + facet_wrap("pos") + 
+ggplot(filter(agree), aes(x = prop_human, y = prop_model, color = file)) + facet_wrap("pos") + 
   geom_point() + geom_smooth(method = "lm", se = F) + xlim(0,1) + ylim(0,1) + 
   theme(legend.position = "bottom")
 
 (ind_corr <- agree %>% group_by(file) %>% cor_test(vars = c("prop_model", "prop_human")) %>% arrange(cor))
 # ind_corr %>% write_csv(here("code","analysis-part2", "agree_by_ppt.csv"))
+
+ggplot(filter(agree), aes(x = prop_human, y = prop_model)) + facet_wrap("file") + 
+  geom_point() + geom_smooth(method = "lm", se = F) + xlim(0,1) + ylim(0,1) + 
+  theme(legend.position = "bottom")
 
 # 5 min bins
 ds_filt <- ds %>% filter(nap_period == 0 & exclude_period == 0 & !is.na(code) & !is.na(pos))
