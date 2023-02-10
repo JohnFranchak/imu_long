@@ -90,6 +90,20 @@ ds_long %>% filter(age <= 8) %>% group_by(position) %>% get_summary_stats(prop)
 
 ds_long %>% filter(age >= 8) %>% group_by(position) %>% get_summary_stats(prop)
 
+# By age
+
+ds_long %>% drop_na(prop) %>% 
+  ggplot() + facet_wrap("position") + 
+  stat_summary(aes(x = age, y = prop, group = id_uni, color = position)) + 
+  geom_smooth(aes(x = age, y = prop, color = position), method = "lm", se = FALSE) + 
+  scale_x_continuous(name = "Age (mo)", breaks = seq(3, 15, 3), limits = c(3,15))
+
+ds_sum <- ds_long %>% group_by(id_uni, age, position) %>% get_summary_stats(prop)
+summary(lm(mean ~ age, data = filter(ds_sum, position == "held_time")))
+summary(lm(mean ~ age, data = filter(ds_sum, position == "supine_time")))
+summary(lm(mean ~ age, data = filter(ds_sum, position == "sit_time")))
+summary(lm(mean ~ age, data = filter(ds_sum, position == "prone_time")))
+summary(lm(mean ~ age, data = filter(ds_sum, position == "upright_time")))
 
 #Dominant body position? 
 
