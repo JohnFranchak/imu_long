@@ -12,3 +12,7 @@ ds <- pmap_dfr(synced_ppts, ~ read_csv(here("data",..1, ..2,"synced_data","lena_
 
 write_csv(ds, here("code","analysis-lena-imu","lena-imu-compiled.csv"))
 
+ds %>% select(clockTimeStart:clockTimeEnd, id:age) %>% 
+  rename_with(janitor::make_clean_names) %>% 
+  write_csv(here("code","analysis-lena-imu","imu-compiled.csv"))
+
