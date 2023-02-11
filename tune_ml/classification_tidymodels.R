@@ -59,7 +59,7 @@ posture_aug <- augment(posture_fit, test_data)
 posture_aug %>% multi_metric(truth = code, estimate = .pred_class)
 posture_aug %>% conf_mat(truth = code, estimate = .pred_class) %>% autoplot(type = "heatmap")
 
-posture_aug %>% group_by(id) %>% multi_metric(truth = code, estimate = .pred_class) %>% write_csv("splithalf-metrics.csv")
+posture_aug %>% group_by(id) %>% multi_metric(truth = code, estimate = .pred_class) %>% write_csv("tune_ml/splithalf-metrics.csv")
 
 
 # TUNING
@@ -137,7 +137,7 @@ elapsed <- end_time - start_time
 
 ggplot(metrics, aes(.estimate)) + geom_histogram() + facet_wrap(".metric", scales = "free") + xlim(0,1)
 
-write_csv(pred_rs, "predictions-ground-truth.csv")
-write_csv(metrics, "resampled-metrics.csv")
+write_csv(pred_rs, "tune_ml/predictions-ground-truth.csv")
+write_csv(metrics, "tune_ml/resampled-metrics.csv")
 save(elapsed, posture_fit_rs, metrics, file =  here("code","tune_ml","classification_tidymodels_output.RData"))
 
