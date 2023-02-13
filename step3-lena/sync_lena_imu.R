@@ -1,4 +1,4 @@
-sync_lena_imu <- function(id, session, who = "infant") {
+sync_lena_imu <- function(id, session, who = "infant", type = "group") {
   require(tidyverse)
   require(here)
   require(lubridate)
@@ -11,7 +11,7 @@ sync_lena_imu <- function(id, session, who = "infant") {
   
   ## TO DO -- More interesting stats about motor w/in the bin...# of transitions, # of events, stuff like that
   
-  p <- read_csv(here("data",id,session,"synced_data","position_predictions_infant_group.csv")) %>% 
+  p <- read_csv(here("data",id,session,"synced_data",str_glue("position_predictions_infant_{type}.csv"))) %>% 
     mutate(pos = factor(pos, levels = c("Prone","Upright","Held","Sitting","Supine")))
   p$time <- with_tz(p$time, "America/Los_Angeles")
   start_time <- min(p$time)
@@ -56,6 +56,9 @@ sync_lena_imu <- function(id, session, who = "infant") {
       lena$upright_time[i] <- prop %>% filter(f == "Upright") %>% pull(p)
     }
   }
-  
-  write_csv(lena, here("data",id,session, "synced_data", glue("lena_imu_{who}.csv")))
+  if (type == "group") {
+    write_csv(lena, here("data",id,session, "synced_data", glue("lena_imu_{who}.csv")))
+  } else {
+    write_csv(lena, here("data",id,session, "synced_data", glue("lena_imu_{who}_{type}.csv")))
+  }
 }

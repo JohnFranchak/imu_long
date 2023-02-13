@@ -8,4 +8,7 @@ synced_ppts <- read_csv(here("code","project_status","project_dashboard.csv")) %
 
 walk2(synced_ppts$id, synced_ppts$session, ~ sync_lena_imu(id = .x, session = .y))
 
-source(here("code","project_status","generate_dashboard.R"))
+synced_ppts <- synced_ppts %>% filter(!(id == 110 & session == 4), !(id == 111 & session == 4), !(id == 116 & session == 1))
+walk2(synced_ppts$id, synced_ppts$session, ~ sync_lena_imu(id = .x, session = .y, type = "split"))
+
+
