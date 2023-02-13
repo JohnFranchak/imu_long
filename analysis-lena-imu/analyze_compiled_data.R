@@ -18,6 +18,7 @@ theme_update(text = element_text(size = 14),
 #SERVER
 i_am(".here")
 ds <- read_csv(here("code","analysis-lena-imu","lena-imu-compiled.csv"))
+ds <- read_csv(here("code","analysis-lena-imu","lena-imu-compiled-split.csv"))
 
 #MAC
 ds <- read_csv(here("analysis-lena-imu","lena-imu-compiled.csv"))
