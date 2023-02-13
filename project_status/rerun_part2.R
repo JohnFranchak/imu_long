@@ -9,5 +9,8 @@ synced_ppts <- read_csv(here("code","project_status","project_dashboard.csv")) %
 synced_ppts <- synced_ppts %>% filter(!(id == 111 & session == 4))
 walk2(synced_ppts$id, synced_ppts$session, ~ part2_range(id = .x, session = .y, who = "infant", type = "position"))
 
+synced_ppts <- synced_ppts %>% filter(!(id == 110 & session == 4), !(id == 111 & session == 4), !(id == 116 & session == 1))
+walk2(synced_ppts$id, synced_ppts$session, ~ part2_range(id = .x, session = .y, who = "infant", type = "split"))
+
 synced_ppts <- synced_ppts %>% filter(!(id == 110 & session == 4), !(id == 111 & session == 4))
 walk2(synced_ppts$id, synced_ppts$session, ~ part2_range(id = .x, session = .y, who = "infant", type = "sitting"))

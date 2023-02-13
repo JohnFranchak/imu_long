@@ -36,7 +36,8 @@ if(type == "position") {
   ds <- read_csv(here("data",id, session, "synced_data", str_glue("position_predictions_infant_group.csv")))
 } else if (type == "sitting") {
   ds <- read_csv(here("data",id, session, "synced_data", str_glue("position_predictions_infant_sitting.csv")))
-  
+} else if (type == "split") {
+  ds <- read_csv(here("data",id, session, "synced_data", str_glue("position_predictions_infant_split.csv")))
 }
 ds$time <- with_tz(ds$time, "America/Los_Angeles")
 ds_coded <-ds %>% filter_by_time(time, .start_date = pt2_start_time, .end_date = pt2_end_time)
