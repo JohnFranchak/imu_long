@@ -3,16 +3,16 @@ library(rstatix)
 library(here)
 i_am(".here")
 
-pt2_files <- list.files(here("data"), pattern = "position_agreement_infant_pt2.csv", recursive = T, full.names = T)
-# pt2_files <- list.files(here("data"), pattern = "sitting_agreement_infant_pt2.csv", recursive = T, full.names = T)
-pt2_files <- list.files(here("data"), pattern = "split_agreement_infant_pt2.csv", recursive = T, full.names = T)
+type <- "position"
+
+pt2_files <- list.files(here("data"), pattern = str_glue("{type}_agreement_infant_pt2.csv", recursive = T, full.names = T))
 
 ds <- read_csv(pt2_files, id = "file")
 ds <- ds %>% mutate(file = str_remove(file, "Z:/study_imu_long/data/"),
                     file = str_remove(file, "/synced_data/sitting_agreement_infant_pt2.csv"),
                     file = str_remove(file, "/synced_data/position_agreement_infant_pt2.csv"),
                     file = str_remove(file, "/synced_data/split_agreement_infant_pt2.csv"))
-#write_csv(ds, here("code", "analysis-part2", "compiled_agreement_split.csv"))
+write_csv(ds, here("code", "analysis-part2", str_glue("compiled_agreement_{type}.csv")))
 
 # LOCAL
 # ds <- read_csv(here("analysis-part2", "compiled_agreement.csv"))
