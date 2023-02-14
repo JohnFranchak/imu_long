@@ -47,6 +47,11 @@ pal <-  c("#F0E442","#009E73","#56B4E9", "#E69F00",  "#0072B2") %>%  set_names(u
 ds_long %>% 
   ggplot(aes(x = prop, y = adult_word_cnt)) + facet_wrap("position") + 
   geom_point(alpha = .25) + geom_smooth(method = "lm", color = "red") + 
+  xlab("Prop. Time in Position") + ylab("Number of Adult Words") + ylim(0, 1000)
+
+ds_long %>% filter(position == "held_time") %>% 
+  ggplot(aes(x = prop, y = adult_word_cnt)) + 
+  geom_point(alpha = .25) + geom_smooth(method = "lm", color = "red") + 
   xlab("Prop. Time Held") + ylab("Number of Adult Words") + ylim(0, 1000)
 
 positions <- unique(ds_long$position)
