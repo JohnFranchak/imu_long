@@ -34,15 +34,30 @@ lena_pos_corrs <- . %>% cor_mat(adult_word_cnt, conv_turn_count, child_utt_cnt, 
 ds %>% lena_pos_corrs()
 ds %>% filter(age > 8) %>% group_by(id_uni) %>% group_map(~ .x %>% lena_pos_corrs())
 
+ds %>% filter(age > 8) %>% lena_pos_corrs()
+
 ds %>% filter(age > 8) %>% 
 ggplot(aes(x = held_time, y = adult_word_cnt)) + 
   geom_point() + 
   facet_wrap("id_uni")
 
-ds %>% filter(age > 8) %>% lena_pos_corrs()
 ds %>% filter(age > 8) %>% 
   ggplot(aes(x = held_time, y = adult_word_cnt, color = id_uni)) + 
   geom_point(color = "gray") + geom_smooth(se = F, method = "lm")
+
+ds %>% filter(age > 8) %>% 
+  ggplot(aes(x = sit_time, y = adult_word_cnt, color = id_uni)) + 
+  geom_smooth(se = F, method = "lm")
+
+ds %>% filter(age > 8) %>% 
+  ggplot(aes(x = sit_time, y = adult_word_cnt)) + 
+  geom_point(alpha = .25) + geom_smooth(method = "lm", color = "red") + 
+  xlab("Prop. Time Sitting") + ylab("Number of Adult Words") + ylim(0, 1000)
+
+ds %>% filter(age > 8) %>% 
+  ggplot(aes(x = held_time, y = adult_word_cnt)) + 
+  geom_point(alpha = .25) + geom_smooth(method = "lm", color = "red") + 
+  xlab("Prop. Time Held") + ylab("Number of Adult Words") + ylim(0, 1000)
 
 ds %>% filter(age > 8) %>% 
   lmerTest::lmer(adult_word_cnt ~ held_time + (1 + held_time|id_uni), data = .) -> res
@@ -50,6 +65,14 @@ summary(res)
 
 ds %>% filter(age > 8) %>% 
   lmerTest::lmer(adult_word_cnt ~ sit_time + (1 + sit_time|id_uni), data = .) -> res
+summary(res)
+
+ds %>% filter(age > 8) %>% 
+  lmerTest::lmer(adult_word_cnt ~ upright_time + (1 + upright_time|id_uni), data = .) -> res
+summary(res)
+
+ds %>% filter(age > 8) %>% 
+  lmerTest::lmer(adult_word_cnt ~ prone_time + (1 + prone_time|id_uni), data = .) -> res
 summary(res)
 
 ds_long <- ds %>% pivot_longer(cols = sit_time:upright_time, names_to = "position", values_to = "prop") %>% 
