@@ -18,7 +18,7 @@ write_csv(ds, here("code", "analysis-part2", str_glue("compiled_agreement_{type}
 # LOCAL
 # ds <- read_csv(here("analysis-part2", "compiled_agreement.csv"))
 
-# OVERALL, UGH
+# OVERALL
 ds_filt <- ds %>% filter(nap_period == 0 & exclude_period == 0 & !is.na(code) & !is.na(pos))
 # ds_filt <- ds %>% filter(exclude_period == 0 & !is.na(code) & !is.na(pos))
 
