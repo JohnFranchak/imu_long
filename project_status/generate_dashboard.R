@@ -1,4 +1,4 @@
-# devtools::install_github("JohnFranchak/tidyvyur")
+#devtools::install_github("JohnFranchak/tidyvyur")
 
 library(tidyverse)
 library(tidyvyur)
