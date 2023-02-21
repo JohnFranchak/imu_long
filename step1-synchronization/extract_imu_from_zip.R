@@ -2,8 +2,8 @@ library(here)
 library(tidyverse)
 i_am(".here")
 
-id <- 136
-session <- 1
+id <- 120
+session <- 3
 
 fs <- list.files(here("temp_imu"), pattern = paste0(".*",as.character(id),".*zip"), full.names = T)
 for (f in fs) {
