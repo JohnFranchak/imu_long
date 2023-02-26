@@ -16,10 +16,14 @@ library(reactablefmtr)
 library(janitor)
 library(lubridate)
 dashboard <- read_csv("project_status/project_dashboard.csv")
+younger <- filter(dashboard, agemo <= 8)
+older <- filter(dashboard, agemo > 8)
 ```
 
 | Last updated: `r file.info("project_status/project_dashboard.csv")$ctime` 
 | Dataset contains `r length(unique(dashboard$id))` unique participants with `r nrow(dashboard)` overall sessions. 
+| There are `r length(unique(younger$id))` unique younger participants with `r nrow(younger)` overall sessions. 
+| There are `r length(unique(older$id))` unique older participants with `r nrow(older)` overall sessions. 
 
 ```{r}
 #| echo: false
