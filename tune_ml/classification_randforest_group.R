@@ -15,7 +15,7 @@ testing <- slide_filt %>% group_by(code) %>% slice_tail(prop = .25) %>% ungroup 
 
 not_all_na <- function(x) any(!is.na(x))
 training <- training %>% select_if(not_all_na)
-rfmodel <- randomForest(code ~ ., data = training, localImp = TRUE, proximity = FALSE, ntree = 150)
+rfmodel <- randomForest(code ~ ., data = training, localImp = TRUE, proximity = FALSE, ntree = 550, mtry = 44)
 
 predictions <- predict(rfmodel, testing, type = "class")
 u <- union(predictions, testing$code)

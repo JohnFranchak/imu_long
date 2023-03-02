@@ -40,7 +40,7 @@ not_all_na <- function(x) any(!is.na(x))
 training <- training %>% select_if(not_all_na)
 
 if (type == "split") {
-  rfmodel <- randomForest(code ~ ., data = training, localImp = TRUE, proximity = FALSE, ntree = 150)
+  rfmodel <- randomForest(code ~ ., data = training, localImp = TRUE, proximity = FALSE, ntree = 550, mtry = 44)
   predictions <- predict(rfmodel, testing, type = "class")
   u <- union(predictions, testing$code)
   res <- confusion_matrix(factor(testing$code, u),factor(predictions, u))
