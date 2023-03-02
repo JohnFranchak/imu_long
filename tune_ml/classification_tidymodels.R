@@ -2,7 +2,7 @@ library(here)
 library(janitor)
 library(tidyverse)
 library(tidymodels)
-library(doMC)
+# library(doMC)
 tidymodels_prefer()
 i_am(".here")
 start_time <- Sys.time()
@@ -80,12 +80,14 @@ grid <-
   posture_wflow %>%
   parameters() %>%
   update(
-    mtry = mtry(range = c(1, 40)),
-    trees = trees(),
-    min_n = min_n()
+    mtry = mtry(range = c(35, 100)),
+    trees = trees(range = c(400, 800)),
+    min_n = min_n(range = c(2, 6))
   ) %>%
   grid_max_entropy(size = 8)
 grid
+# mtry trees min_n .metric   mean     n  std_err
+# 44   550     4   accuracy 0.971     5 0.000557
 
 ctrl <- control_race(verbose = TRUE, verbose_elim = TRUE)
 folds <- vfold_cv(train_data, v = 5)
