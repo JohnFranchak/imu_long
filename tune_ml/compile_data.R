@@ -7,7 +7,8 @@ i_am(".here")
 ids <- list.dirs(here("data"), recursive = F) %>% 
   purrr::discard(str_detect(., pattern = "_template") ) %>% purrr::discard(str_detect(., pattern = "_RAs") )
 sessions_dir <- map(ids, ~list.dirs(.x, recursive = F)) %>% flatten_chr %>% 
-  purrr::discard(str_detect(., pattern = "123/1")) #missing sensors so bad for training
+  purrr::discard(str_detect(., pattern = "123/1")) %>%  #missing sensors so bad for training
+  purrr::discard(str_detect(., pattern = "104/1")) #remove test session
 infant_synced <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "mot_features_infant.RData")))
 synced_session_dirs <- sessions_dir[infant_synced ==1]
 
