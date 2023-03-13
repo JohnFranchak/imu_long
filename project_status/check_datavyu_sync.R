@@ -28,3 +28,7 @@ return_sync <- function(opf_file) {
 }
 
 sync_data <- map_dfr(opf_files, return_sync)
+
+sync_data <- sync_data %>% arrange(file, onset)
+
+first_rows <- sync_data %>% group_by(file) %>% slice_head %>% filter(time != 1) #should be empty
