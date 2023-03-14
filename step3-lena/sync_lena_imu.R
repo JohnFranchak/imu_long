@@ -5,9 +5,10 @@ sync_lena_imu <- function(id, session, who = "infant", type = "group") {
   require(glue)
   i_am(".here")
   
-  # id <- 102
-  # session <- 3
+  # id <- 110
+  # session <- 4
   # who <- "infant"
+  # type <- "split"
   
   ## TO DO -- More interesting stats about motor w/in the bin...# of transitions, # of events, stuff like that
   
@@ -46,7 +47,7 @@ sync_lena_imu <- function(id, session, who = "infant", type = "group") {
   
   for (i in 1:nrow(lena)) {
     temp_posture <- NULL
-    temp_posture <- p %>% filter(time >= lena$clock_time_start[i], time < lena$clock_time_end[i], nap_period == 0) #
+    temp_posture <- p %>% filter(time >= lena$clock_time_start[i], time < lena$clock_time_end[i], nap_period == 0) %>% drop_na(pos)
     if (!is.null(temp_posture)) {
       prop <- fct_count(temp_posture$pos, prop = T)
       lena$sit_time[i] <- prop %>% filter(f == "Sitting") %>% pull(p)
@@ -56,6 +57,7 @@ sync_lena_imu <- function(id, session, who = "infant", type = "group") {
       lena$upright_time[i] <- prop %>% filter(f == "Upright") %>% pull(p)
     }
   }
+  
   if (type == "group") {
     write_csv(lena, here("data",id,session, "synced_data", glue("lena_imu_{who}.csv")))
   } else {
