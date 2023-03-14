@@ -2,7 +2,7 @@
 title: "Project Dashboard"
 format: 
   html:
-    page-layout: full
+    page-layout: custom
 ---
 
 ```{r}
@@ -24,6 +24,8 @@ older <- filter(dashboard, agemo > 8)
 | Dataset contains `r length(unique(dashboard$id))` unique participants with `r nrow(dashboard)` overall sessions. 
 | There are `r length(unique(younger$id))` unique younger participants with `r nrow(younger)` overall sessions. 
 | There are `r length(unique(older$id))` unique older participants with `r nrow(older)` overall sessions. 
+
+
 
 ```{r}
 #| echo: false
