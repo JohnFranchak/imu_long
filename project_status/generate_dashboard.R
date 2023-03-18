@@ -37,7 +37,7 @@ for (i in 1:length(opf_files)) {
 
 dashboard <- tibble(sessions_dir, completed_paperwork, raw_videos, converted_videos, imu_files, datavyu_files, position_primary, position_rel, activity_exported, 
                     biostamp_annotations, infant_synced, lena_downloaded, lena_processed, lena_synced, pt2_processed) %>% 
-  separate(sessions_dir, into = c(NA, NA, NA, "id", "session"), sep = "/", remove = FALSE) %>%
+  separate(sessions_dir, into = c(NA, NA, NA, NA, NA, "id", "session"), sep = "/", remove = FALSE) %>%
   mutate(across(id:session, as.numeric)) %>% 
   arrange(id, session) %>% 
   filter(raw_videos > 0 | converted_videos > 0)
