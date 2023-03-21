@@ -5,6 +5,7 @@ require(here)
 require(ITSbin)
 require(tidyverse)
 require(glue)
+require(data.table)
 i_am(".here")
 
 # id <- 107
