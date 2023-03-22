@@ -1,15 +1,12 @@
 args <- commandArgs()
 print(args)
 
-id <- args[1]
-session <- args[2]
+id <- args[6]
+session <- args[7]
 
-require(here)
-# library(tidyverse) 
+library(here)
+library(stringr)
 i_am(".here")
-
-# id <- 128
-# session <- 3
 
 fs <- list.files(here("temp_imu"), pattern = paste0(".*",as.character(id),".*zip"), full.names = T)
 for (f in fs) {
