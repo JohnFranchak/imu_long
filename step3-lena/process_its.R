@@ -1,6 +1,7 @@
 process_its <- function(id, session) {
 
 #devtools::install_github("htanderson/ITSbin", dependencies = TRUE)
+#devtools::install_version("data.table", version = "1.13.6", repos = "http://cran.us.r-project.org")
 require(here)
 require(ITSbin)
 require(tidyverse)
@@ -8,8 +9,8 @@ require(glue)
 require(data.table)
 i_am(".here")
 
-# id <- 107
-# session <- 2
+ # id <- 107
+ # session <- 2
 
 print(str_glue("Running id {id} session {session}"))
 
