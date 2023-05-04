@@ -12,7 +12,7 @@ library(glue)
 i_am(".here")
 source(here("code","step1-synchronization","motion_features.R"))
 
-id <- 120
+id <- 130
 session <- 2
 who <- "infant"
 
