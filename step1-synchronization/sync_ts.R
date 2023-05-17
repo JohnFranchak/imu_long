@@ -1,14 +1,9 @@
 library(timetk)
-library(lubridate)
+library(data.table)
 library(here)
 library(janitor)
 library(slider)
-library(randomForest)
-library(cvms)
-library(caret)
 library(tidyverse)
-library(lubridate)
-library(glue)
 i_am(".here")
 source(here("code","step1-synchronization","motion_features.R"))
 
@@ -29,99 +24,61 @@ complete <-  TRUE
 session_param <- list(id = id, session = session, who = who, start_time = start_time, end_time = end_time, complete = complete)
 
 # READ DATA -----
-# Reads infant biostamp data 
-# Most of this code is just trying to assign consistent names for each body part x direction x signal type
-read_infant_imu <- function(name) {
-  name_long <- name
+imu_column <- function(name) {
   name <- str_split_fixed(name, "_", n = 3) %>% as.list(.) %>%  set_names(c("side","part","signal"))
-  file <- here("data",id,session, "imu", glue("{name$side}_{name$part}"),glue("{name$signal}.csv"))
   col_names <- c("time", 
-                 glue("{str_sub(name$side,1,1)}{str_sub(name$part,1,1)}{str_sub(name$signal,1,3)}_x"), 
-                 glue("{str_sub(name$side,1,1)}{str_sub(name$part,1,1)}{str_sub(name$signal,1,3)}_y"), 
-                 glue("{str_sub(name$side,1,1)}{str_sub(name$part,1,1)}{str_sub(name$signal,1,3)}_z"))
-  assign(name_long, read_csv(file, skip = 1, col_names = col_names), envir = .GlobalEnv)
+                 str_glue("{str_sub(name$side,1,1)}{str_sub(name$part,1,1)}{str_sub(name$signal,1,3)}_x"), 
+                 str_glue("{str_sub(name$side,1,1)}{str_sub(name$part,1,1)}{str_sub(name$signal,1,3)}_y"), 
+                 str_glue("{str_sub(name$side,1,1)}{str_sub(name$part,1,1)}{str_sub(name$signal,1,3)}_z"))
+}
+imu_file <- function(name, id, session) {
+  name <- str_split_fixed(name, "_", n = 3) %>% as.list(.) %>%  set_names(c("side","part","signal"))
+  file <- here("data",id,session, "imu", str_glue("{name$side}_{name$part}"),str_glue("{name$signal}.csv"))
 }
 
-# This reads parent axivity data
-read_parent_imu <- function(name) {
-  file <- here("data",id,session, "imu", "caregiver",glue("{name}.csv"))
-  col_names <- c("time", glue("{str_sub(name,1,1)}acc_x"), glue("{str_sub(name,1,1)}acc_y"), glue("{str_sub(name,1,1)}acc_z"),
-                 glue("{str_sub(name,1,1)}gyr_x"), glue("{str_sub(name,1,1)}gyr_y"), glue("{str_sub(name,1,1)}gyr_z"))
-  assign(name, read_csv(file, skip = 1, col_names = col_names), envir = .GlobalEnv)
-}
+sensor_data <- c("left_ankle_accel", "right_ankle_accel", "left_hip_accel", "right_hip_accel", "left_ankle_gyro", "right_ankle_gyro", "left_hip_gyro","right_hip_gyro")
+read_imu <- function(name, id, session) {fread(imu_file(name, id, session), skip = 1, col.names = imu_column(name), sep = ',', verbose = T)}
+read_imu(sensor_data[1], id, session)
 
-# Read the data for each file
-if (who == "infant") {
-  sensor_data <- c("left_ankle_accel", "right_ankle_accel", "left_hip_accel", "right_hip_accel", "left_ankle_gyro", "right_ankle_gyro", "left_hip_gyro","right_hip_gyro")
-  walk(sensor_data, ~read_infant_imu(.x))
-} else if (who == "parent") {
-  sensor_data <- c("wrist", "hip")
-  walk(sensor_data, ~read_parent_imu(.x))
-}
+map(sensor_data, ~fread(imu_file(.x, id, session), skip = 1, col.names = imu_column(.x), sep = ',', verbose = T))
 
 # FIX TIMES ----
 # Get timestamps into participant local datetimes
-filter_and_fix_time <- function(data_string, start_time, end_time, who) {
+filter_and_fix_time <- function(data_string, start_time, end_time) {
   temp_ds <- get(data_string)
   fix_biostamp_time <- function(x) as_datetime((round(x/1000000, 2)), tz = "America/Los_Angeles")
-  
-  if (who == "infant") {
-    temp_ds <- temp_ds %>% mutate(time = fix_biostamp_time(time))
-    } else 
-  if (who == "parent") {
-    temp_ds <- temp_ds %>% mutate(time = as_datetime(time, tz = "America/Los_Angeles") + hours(7))
-    temp_ds <- temp_ds %>% mutate(time = time + hours(1)) #CRAP IS THIS A DAYLIGHT SAVINGS THING?
-  }  
+  temp_ds <- temp_ds %>% mutate(time = fix_biostamp_time(time))
   temp_ds <- temp_ds %>% filter_by_time(time, start_time, end_time) 
   assign(paste0(data_string,"_filt"), temp_ds, envir = .GlobalEnv)
 }
 
-walk(sensor_data, ~ filter_and_fix_time(.x, start_time, end_time, who))
+walk(sensor_data, ~ filter_and_fix_time(.x, start_time, end_time))
 sdfilt <- map_chr(sensor_data, ~paste0(.x,"_filt"))
 
 # JOIN SENSORS INTO SINGLE FRAME ----
 ds <-  full_join(get(sdfilt[1]), get(sdfilt[2])) 
-if (who == "infant") {
-  for (i in 3:length(sdfilt)){
-    ds <- full_join(ds, get(sdfilt[i]))
-  }
+for (i in 3:length(sdfilt)){
+  ds <- full_join(ds, get(sdfilt[i]))
 }
 ds <- ds %>% arrange(time)
 ds  <- ds %>% mutate(across(-time, ~ts_impute_vec(.x)))
 
-#ds %>% plot_time_series(time, laacc_x, .smooth = F, .interactive = F)
-
 # USE INFANT SYNC POINT FROM BIOSTAMP TO CORRECT ACTIVITY TIMES -----
-#FOR SOME PPTS, NEED TO ADD A CONSTANT OF MINUS 1 HOUR, PROBABLY A DST ISSUE
 
 # This annotation file contains the detected sync point time from the time series
 anno <- read_csv(here("data",id,session, "coding", "biostamp_annotations.csv")) %>% 
   rename_with(~ janitor::make_clean_names(.x)) %>% 
   mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)), tz = "America/Los_Angeles")))
-  # mutate(across(start_timestamp_ms:stop_timestamp_ms, ~as_datetime((round(.x/1000, 2)) - hours(1), tz = "America/Los_Angeles")))  #For 102-3
 
 anno <- anno %>% filter_by_time(start_timestamp_ms, as_datetime(start_time) - hours(4), end_time)
 sync_point <- anno %>% filter(value == "sync") %>% pull(start_timestamp_ms)
 
 # IMPORT CODED ACTIVITY FROM DATAVYU -----
-if (who == "infant") {
-  activity <- read_csv(here("data",id, session, "coding", "activity.csv"),col_names = c("onset", "offset", "code"))
-} else
-  if (who == "parent") {
-    activity <- read_csv(here("data",id, session, "coding", "activity_parent.csv"),col_names = c("onset", "offset", "code"))
-  }
+activity <- read_csv(here("data",id, session, "coding", "activity.csv"),col_names = c("onset", "offset", "code"))
 activity <- activity %>% mutate(across(onset:offset, ~ sync_point + seconds(.x/1000)))
 valid_codes <- c("d","u","s","sr","ss","sc","w","c","p","hs","hw","l")
 activity_special <- activity %>% filter(!code %in% valid_codes)
 activity <- activity %>% filter(code %in%valid_codes)
-
-#NEED A BETTER WAY OF GETTING WRIST SYNC POINTS FROM THE DATA
-# if (who == "parent") {
-#   wrist_video_time <- activity_special %>% filter(code == "wrist") %>% pull(onset) 
-#   wrist_sync <- ds %>% filter(wacc_x > 3) %>% slice_head() %>%  pull(time) #NEED TO FIX THIS FOR FUTURE PPTS
-#   time_diff <- wrist_sync - wrist_video_time
-#   ds$time <- ds$time - time_diff
-# }
 
 # Match activity codes to imu data based on time
 ds$code <- as.character(NA)
@@ -129,18 +86,10 @@ for (i in 1:nrow(activity)) {
   ds[between_time(ds$time, activity$onset[i], activity$offset[i]),]$code <- activity$code[i]
 } 
 
-start_filt <- force_tz(as_datetime(start_time), "America/Los_Angeles")
-end_filt <- force_tz(as_datetime(end_time), "America/Los_Angeles")
-
-ds_coded <-ds %>% filter_by_time(time, .start_date = start_filt, .end_date = end_filt)
-
 #Identify start and end times of coded period
 
 start_time_coded <- activity %>% slice_head %>% pull(onset)
 end_time_coded <- activity %>% slice_tail %>% pull(offset)
-
-# ds_coded %>% plot_time_series(time, laacc_x, .color_var = code, .smooth = F)
-# ds_coded %>% plot_time_series(time, hacc_z, .color_var = code, .smooth = F)
 
 # MOTION FEATURES ------
 # sliding 4 second windows every 1 second
@@ -181,7 +130,7 @@ if ("exclude" %in% unique(anno$value)) {
 session_param$start_time_coded <- start_time_coded
 session_param$end_time_coded <- end_time_coded
 
-save(slide, session_param, file = here("data",id,session, "synced_data", glue("mot_features_{who}.RData")))
+save(slide, session_param, file = here("data",id,session, "synced_data", str_glue("mot_features_{who}.RData")))
 
 source(here("code","step2-classification","run_classification_split.R"))
 run_classification_split(id = id, session = session, type = "split")
