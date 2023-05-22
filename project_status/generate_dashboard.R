@@ -17,7 +17,9 @@ activity_exported <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/co
 biostamp_annotations <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/coding"), "biostamp_annotations")))
 lena_downloaded <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/lena/its"), "lena.its")))
 lena_processed <-  map_int(sessions_dir, ~ length(list.dirs(str_glue("{.x}/lena/output/bin"))))
-infant_synced <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "mot_features_infant.RData")))
+infant_synced_old <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "mot_features_infant.RData")))
+infant_synced_jul <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "mot_features_infant.csv")))
+infant_synced_codes <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "codes.csv")))
 lena_synced <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "lena_imu_infant.csv")))
 pt2_processed <- map_int(sessions_dir, ~ length(list.files(str_glue("{.x}/synced_data"), "position_agreement_infant_pt2.csv")))
 
@@ -36,14 +38,14 @@ for (i in 1:length(opf_files)) {
 
 
 dashboard <- tibble(sessions_dir, completed_paperwork, raw_videos, converted_videos, imu_files, datavyu_files, position_primary, position_rel, activity_exported, 
-                    biostamp_annotations, infant_synced, lena_downloaded, lena_processed, lena_synced, pt2_processed) %>% 
+                    biostamp_annotations, infant_synced_old, infant_synced_jul, infant_synced_codes, lena_downloaded, lena_processed, lena_synced, pt2_processed) %>% 
   separate(sessions_dir, into = c(NA, NA, NA, NA, NA, "id", "session"), sep = "/", remove = FALSE) %>%
   mutate(across(id:session, as.numeric)) %>% 
   arrange(id, session) %>% 
   filter(raw_videos > 0 | converted_videos > 0)
 
-synced_ppts <- dashboard %>% filter(infant_synced == 1) %>% 
-  transmute(sync_path = str_glue("{sessions_dir}/synced_data/mot_features_infant.RData")) %>% unlist
+# synced_ppts <- dashboard %>% filter(infant_synced == 1) %>% 
+#   transmute(sync_path = str_glue("{sessions_dir}/synced_data/mot_features_infant.RData")) %>% unlist
 
 # Get dates and times from ppt_info
 ppt_info <- read_csv(here("data", "ppt_info.csv"))

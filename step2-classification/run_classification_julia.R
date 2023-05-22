@@ -1,4 +1,4 @@
-run_classification_julia <- function(id, session, who = "infant", type = "split") {
+#run_classification_julia <- function(id, session, who = "infant", type = "split") {
 
 require(lubridate)
 require(here)
@@ -10,8 +10,8 @@ require(glue)
 i_am(".here")
 
 #LOAD DATA
- id <- 11
- session <- 1
+ id <- 102
+ session <- 3
  who <- "infant"
  type <- "split"
 
